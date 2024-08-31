@@ -23,6 +23,11 @@ type FileEntry struct {
 	Size uint32
 }
 
+// nameLength returns the length of the file name in bytes.
+func (f *FileEntry) nameLength() uint16 {
+	return uint16(len(f.Name))
+}
+
 // Header represents the metadata of the archive.
 // It includes the header's length in bytes and a list of file entries.
 type Header struct {
@@ -55,8 +60,7 @@ func (h *Header) Serialize() ([]byte, error) {
 
 	for _, entry := range h.Entries {
 		// Write the length of the file name in bytes
-		length := uint16(len(entry.Name))
-		if err := binary.Write(buffer, byteOrder, length); err != nil {
+		if err := binary.Write(buffer, byteOrder, entry.nameLength()); err != nil {
 			return nil, err
 		}
 
