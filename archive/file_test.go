@@ -20,6 +20,6 @@ func TestNewFileFromReader(t *testing.T) {
 	assert.Equal(t, archiveFile.FileName, fileName)
 	assert.NotEmpty(t, archiveFile.CompressedBytes)
 
-	uncompressed, _ := archiveFile.UncompressedBytes()
+	uncompressed, _ := archiveFile.DecompressedBytes()
 	assert.Equal(t, data, uncompressed)
 }

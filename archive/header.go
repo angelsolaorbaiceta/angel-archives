@@ -12,8 +12,8 @@ import (
 var magic = []byte{0x41, 0x41, 0x52, 0x3F}
 var byteOrder = binary.LittleEndian
 
-// FileEntry represents a single file's metadata in the archive.
-type FileEntry struct {
+// HeaderFileEntry represents a single file's metadata in the archive.
+type HeaderFileEntry struct {
 	// Name is a unique identifier for the file.
 	Name string
 	// Offset is the byte offset from the beginning of the archive where the file's data begins.
@@ -24,7 +24,7 @@ type FileEntry struct {
 }
 
 // nameLength returns the length of the file name in bytes.
-func (f *FileEntry) nameLength() uint16 {
+func (f *HeaderFileEntry) nameLength() uint16 {
 	return uint16(len(f.Name))
 }
 
@@ -33,7 +33,7 @@ func (f *FileEntry) nameLength() uint16 {
 type Header struct {
 	// HeaderLength is the length of the header in bytes, including the magic and header length fields.
 	HeaderLength uint32
-	Entries      []FileEntry
+	Entries      []HeaderFileEntry
 }
 
 // Serialize serializes the header into a byte slice.
@@ -120,7 +120,7 @@ func ReadHeader(r io.Reader) (*Header, error) {
 	}
 
 	for {
-		entry := FileEntry{}
+		entry := HeaderFileEntry{}
 
 		// Read the length of the file name
 		var length uint16
