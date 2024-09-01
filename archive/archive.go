@@ -8,6 +8,18 @@ type Archive struct {
 	Files  []*ArchiveFile
 }
 
+// TotalSize returns the total size of the archive in bytes.
+// It includes the header and all the files' compressed data.
+func (a *Archive) TotalSize() uint64 {
+	var total uint64 = uint64(a.Header.HeaderLength)
+
+	for _, file := range a.Files {
+		total += uint64(file.CompressedSize())
+	}
+
+	return total
+}
+
 // Write writes the archive into the provided writer.
 func (a *Archive) Write(w io.Writer) error {
 	if err := a.Header.Write(w); err != nil {
