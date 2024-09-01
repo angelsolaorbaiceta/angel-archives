@@ -42,8 +42,8 @@ func ReadArchive(r io.Reader) (*Archive, error) {
 	}, nil
 }
 
-// CreateArchive creates a new archive from the provided file paths.
-func CreateArchive(filePaths []string) (*Archive, error) {
+// Create creates a new archive from the provided file paths.
+func Create(filePaths []string) (*Archive, error) {
 	files, err := readFiles(filePaths)
 	if err != nil {
 		return nil, err

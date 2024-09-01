@@ -13,7 +13,7 @@ func TestCreateArchive(t *testing.T) {
 	var (
 		fileOne      = createTempFileForTest(t, "fileOne.txt", "AAAAAAAA")
 		fileTwo      = createTempFileForTest(t, "fileTwo.txt", "BBBBBBBB")
-		archive, err = CreateArchive([]string{fileOne.FileName, fileTwo.FileName})
+		archive, err = Create([]string{fileOne.FileName, fileTwo.FileName})
 
 		wantHeaderLen = uint32(8 + (2 + len(fileOne.FileName) + 8) + (2 + len(fileTwo.FileName) + 8))
 	)
@@ -67,7 +67,7 @@ func TestWriteAndReadArchive(t *testing.T) {
 	var (
 		fileOne    = createTempFileForTest(t, "fileOne.txt", "AAAAAAAA")
 		fileTwo    = createTempFileForTest(t, "fileTwo.txt", "BBBBBBBB")
-		archive, _ = CreateArchive([]string{fileOne.FileName, fileTwo.FileName})
+		archive, _ = Create([]string{fileOne.FileName, fileTwo.FileName})
 		writer     = new(bytes.Buffer)
 	)
 
