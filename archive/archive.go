@@ -1,8 +1,45 @@
 package archive
 
+import "io"
+
+// An Archive represents a collection of files stored in a single file.
 type Archive struct {
 	Header *Header
 	Files  []*ArchiveFile
+}
+
+// Write writes the archive into the provided writer.
+func (a *Archive) Write(w io.Writer) error {
+	if err := a.Header.Write(w); err != nil {
+		return err
+	}
+
+	for _, file := range a.Files {
+		if err := file.Write(w); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ReadArchive reads an archive from the provided reader.
+// It reads all the files and the header, and returns an Archive struct.
+func ReadArchive(r io.Reader) (*Archive, error) {
+	header, err := ReadHeader(r)
+	if err != nil {
+		return nil, err
+	}
+
+	files, err := ReadFiles(r, header)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Archive{
+		Header: header,
+		Files:  files,
+	}, nil
 }
 
 // CreateArchive creates a new archive from the provided file paths.

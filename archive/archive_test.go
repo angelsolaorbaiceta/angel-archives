@@ -1,6 +1,7 @@
 package archive
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -44,6 +45,39 @@ func TestCreateArchive(t *testing.T) {
 
 		assert.Equal(t, want, got)
 	})
+
+	t.Run("archive files", func(t *testing.T) {
+		assert.Equal(t, 2, len(archive.Files))
+
+		t.Run("first file", func(t *testing.T) {
+			got, err := archive.Files[0].DecompressedBytes()
+			assert.Nil(t, err)
+			assert.Equal(t, []byte("AAAAAAAA"), got)
+		})
+
+		t.Run("second file", func(t *testing.T) {
+			got, err := archive.Files[1].DecompressedBytes()
+			assert.Nil(t, err)
+			assert.Equal(t, []byte("BBBBBBBB"), got)
+		})
+	})
+}
+
+func TestWriteAndReadArchive(t *testing.T) {
+	var (
+		fileOne    = createTempFileForTest(t, "fileOne.txt", "AAAAAAAA")
+		fileTwo    = createTempFileForTest(t, "fileTwo.txt", "BBBBBBBB")
+		archive, _ = CreateArchive([]string{fileOne.FileName, fileTwo.FileName})
+		writer     = new(bytes.Buffer)
+	)
+
+	assert.Nil(t, archive.Write(writer))
+
+	reader := bytes.NewReader(writer.Bytes())
+	got, err := ReadArchive(reader)
+
+	assert.Nil(t, err)
+	assert.Equal(t, archive, got)
 }
 
 // createTempFileForTest creates a file in the test's temporal directory and returns

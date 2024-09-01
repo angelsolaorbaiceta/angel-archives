@@ -13,6 +13,12 @@ type ArchiveFile struct {
 	CompressedBytes []byte
 }
 
+// Write writes the compressed bytes of the file into the provided writer.
+func (f *ArchiveFile) Write(w io.Writer) error {
+	_, err := w.Write(f.CompressedBytes)
+	return err
+}
+
 // CompressedSize returns the size of the compressed file in bytes.
 func (f *ArchiveFile) CompressedSize() uint32 {
 	return uint32(len(f.CompressedBytes))
@@ -50,4 +56,23 @@ func NewFileFromPath(path string) (*ArchiveFile, error) {
 	}
 
 	return NewFileFromReader(reader, path)
+}
+
+// ReadFiles reads the files sequentially from the provided reader using the header.
+func ReadFiles(r io.Reader, header *Header) ([]*ArchiveFile, error) {
+	files := make([]*ArchiveFile, len(header.Entries))
+
+	for i, entry := range header.Entries {
+		fileData := make([]byte, entry.Size)
+		if _, err := r.Read(fileData); err != nil {
+			return nil, err
+		}
+
+		files[i] = &ArchiveFile{
+			FileName:        entry.Name,
+			CompressedBytes: fileData,
+		}
+	}
+
+	return files, nil
 }
