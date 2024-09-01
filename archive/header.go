@@ -20,51 +20,48 @@ type Header struct {
 	Entries      []*HeaderFileEntry
 }
 
-// Serialize serializes the header into a byte slice.
+// Write writes the header into the provided writer.
 //
 // The header is serialized as follows:
 //
-// 1. The magic field is serialized as a 4-byte sequence.
-// 2. The header length field is serialized as a 4-byte sequence.
-// 3. Each file entry is serialized as follows:
-//   - The first 2 bytes represent the length of the file name in bytes.
-//   - The file name is serialized as a sequence of bytes.
-//   - The offset field is serialized as a 4-byte sequence.
-//   - The size field is serialized as a 4-byte sequence.
-func (h *Header) Serialize() ([]byte, error) {
-	buffer := new(bytes.Buffer)
+//  1. The magic field is serialized as a 4-byte sequence.
+//  2. The header length field is serialized as a 4-byte sequence.
+//  3. Each file entry is serialized as follows:
+//     - The first 2 bytes represent the length of the file name in bytes.
+//     - The file name is serialized as a sequence of bytes.
+//     - The offset field is serialized as a 4-byte sequence.
+//     - The size field is serialized as a 4-byte sequence.
+func (h *Header) Write(w io.Writer) error {
+	bytesWritten := uint32(0)
 
 	// Write the magic (4 bytes)
-	buffer.Write(magic)
+	w.Write(magic)
+	bytesWritten += 4
 
 	// Write the header length (4 bytes)
-	if err := binary.Write(buffer, byteOrder, h.HeaderLength); err != nil {
-		return nil, err
+	if err := binary.Write(w, byteOrder, h.HeaderLength); err != nil {
+		return err
+	} else {
+		bytesWritten += 4
 	}
 
 	for _, entry := range h.Entries {
-		if err := entry.Serialize(buffer); err != nil {
-			return nil, err
+		if err := entry.Write(w); err != nil {
+			return err
+		} else {
+			bytesWritten += entry.totalBytes()
 		}
 	}
 
-	// Check that the passed in header length matches the actual length of the serialized header
-	if uint32(buffer.Len()) != h.HeaderLength {
-		return nil, fmt.Errorf("header length mismatch: expected %d, got %d", h.HeaderLength, buffer.Len())
+	// Check that the passed in header length matches the actual length of the
+	// serialized header
+	if bytesWritten != h.HeaderLength {
+		return fmt.Errorf(
+			"header length mismatch: expected %d, got %d", h.HeaderLength, bytesWritten,
+		)
 	}
 
-	return buffer.Bytes(), nil
-}
-
-// WriteHeader writes the serialized header to the provided writer.
-func (h *Header) WriteHeader(w io.Writer) error {
-	data, err := h.Serialize()
-	if err != nil {
-		return err
-	}
-
-	_, err = w.Write(data)
-	return err
+	return nil
 }
 
 // ReadHeader reads the header from the provided reader and returns a Header struct.
@@ -96,7 +93,7 @@ func ReadHeader(r io.Reader) (*Header, error) {
 	}
 
 	for readBytes < headerLength {
-		entry, err := DeserializeHeaderFile(r)
+		entry, err := ReadHeaderFile(r)
 		if err != nil {
 			return nil, err
 		} else {

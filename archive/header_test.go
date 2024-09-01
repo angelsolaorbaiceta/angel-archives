@@ -24,7 +24,8 @@ func TestHeaderSerialization(t *testing.T) {
 		},
 	}
 
-	data, err := header.Serialize()
+	writer := new(bytes.Buffer)
+	err := header.Write(writer)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -37,9 +38,10 @@ func TestHeaderSerialization(t *testing.T) {
 		0x1B, 0x00, 0x00, 0x00, // offset
 		0x04, 0x00, 0x00, 0x00, // size
 	}
+	got := writer.Bytes()
 
-	assert.Equal(t, len(data), len(expected))
-	assert.Equal(t, data, expected)
+	assert.Equal(t, len(got), len(expected))
+	assert.Equal(t, got, expected)
 }
 
 func TestReadHeader(t *testing.T) {

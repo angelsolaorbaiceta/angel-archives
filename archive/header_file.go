@@ -28,8 +28,8 @@ func (f *HeaderFileEntry) totalBytes() uint32 {
 	return 2 + uint32(f.nameLength()) + 4 + 4
 }
 
-// Serialize writes the serialized HeaderFileEntry to the provided writer.
-func (f *HeaderFileEntry) Serialize(w io.Writer) error {
+// Write writes the serialized HeaderFileEntry to the provided writer.
+func (f *HeaderFileEntry) Write(w io.Writer) error {
 	// Write the length of the file name in bytes (2 bytes)
 	if err := binary.Write(w, byteOrder, f.nameLength()); err != nil {
 		return err
@@ -53,8 +53,8 @@ func (f *HeaderFileEntry) Serialize(w io.Writer) error {
 	return nil
 }
 
-// DeserializeHeaderFile reads a HeaderFileEntry from the provided reader.
-func DeserializeHeaderFile(r io.Reader) (*HeaderFileEntry, error) {
+// ReadHeaderFile reads a HeaderFileEntry from the provided reader.
+func ReadHeaderFile(r io.Reader) (*HeaderFileEntry, error) {
 	var (
 		nameLength uint16
 		name       []byte
