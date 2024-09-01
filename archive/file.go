@@ -2,6 +2,7 @@ package archive
 
 import (
 	"io"
+	"os"
 )
 
 // ArchiveFile represents a single file in the archive.
@@ -37,4 +38,14 @@ func NewFileFromReader(reader io.Reader, fileName string) (*ArchiveFile, error) 
 		FileName:        fileName,
 		CompressedBytes: compressedData,
 	}, nil
+}
+
+// NewFileFromPath creates a new ArchiveFile from a file path.
+func NewFileFromPath(path string) (*ArchiveFile, error) {
+	reader, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewFileFromReader(reader, path)
 }

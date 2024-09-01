@@ -15,7 +15,7 @@ func TestHeaderSerialization(t *testing.T) {
 		// 8 bytes for file name +
 		// 8 bytes for offset and size = 26 bytes
 		HeaderLength: 26,
-		Entries: []HeaderFileEntry{
+		Entries: []*HeaderFileEntry{
 			{
 				Name:   "test.txt",
 				Offset: 27, // 26 bytes for the header + 1 byte

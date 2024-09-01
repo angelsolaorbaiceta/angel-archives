@@ -12,28 +12,12 @@ import (
 var magic = []byte{0x41, 0x41, 0x52, 0x3F}
 var byteOrder = binary.LittleEndian
 
-// HeaderFileEntry represents a single file's metadata in the archive.
-type HeaderFileEntry struct {
-	// Name is a unique identifier for the file.
-	Name string
-	// Offset is the byte offset from the beginning of the archive where the file's data begins.
-	// Uses 4 bytes to store the offset.
-	Offset uint32
-	// Size is the size of the file's data in bytes. Uses 4 bytes to store the size.
-	Size uint32
-}
-
-// nameLength returns the length of the file name in bytes.
-func (f *HeaderFileEntry) nameLength() uint16 {
-	return uint16(len(f.Name))
-}
-
 // Header represents the metadata of the archive.
 // It includes the header's length in bytes and a list of file entries.
 type Header struct {
 	// HeaderLength is the length of the header in bytes, including the magic and header length fields.
 	HeaderLength uint32
-	Entries      []HeaderFileEntry
+	Entries      []*HeaderFileEntry
 }
 
 // Serialize serializes the header into a byte slice.
@@ -50,32 +34,16 @@ type Header struct {
 func (h *Header) Serialize() ([]byte, error) {
 	buffer := new(bytes.Buffer)
 
-	// Write the magic
+	// Write the magic (4 bytes)
 	buffer.Write(magic)
 
-	// Write the header length
+	// Write the header length (4 bytes)
 	if err := binary.Write(buffer, byteOrder, h.HeaderLength); err != nil {
 		return nil, err
 	}
 
 	for _, entry := range h.Entries {
-		// Write the length of the file name in bytes
-		if err := binary.Write(buffer, byteOrder, entry.nameLength()); err != nil {
-			return nil, err
-		}
-
-		// Write the file name
-		if _, err := buffer.WriteString(entry.Name); err != nil {
-			return nil, err
-		}
-
-		// Write the offset
-		if err := binary.Write(buffer, byteOrder, entry.Offset); err != nil {
-			return nil, err
-		}
-
-		// Write the size
-		if err := binary.Write(buffer, byteOrder, entry.Size); err != nil {
+		if err := entry.Serialize(buffer); err != nil {
 			return nil, err
 		}
 	}
@@ -101,12 +69,18 @@ func (h *Header) WriteHeader(w io.Writer) error {
 
 // ReadHeader reads the header from the provided reader and returns a Header struct.
 func ReadHeader(r io.Reader) (*Header, error) {
-	header := &Header{}
+	var (
+		readMagic    = make([]byte, 4)
+		headerLength uint32
+		readBytes    uint32 = 0
+		fileEntries  []*HeaderFileEntry
+	)
 
-	// Read the magic
-	readMagic := make([]byte, 4)
+	// Read 	// Read the magic (4 bytes)
 	if _, err := io.ReadFull(r, readMagic); err != nil {
 		return nil, err
+	} else {
+		readBytes += 4
 	}
 
 	// Check if the magic is correct
@@ -114,42 +88,26 @@ func ReadHeader(r io.Reader) (*Header, error) {
 		return nil, fmt.Errorf("invalid magic: got %v, expected %v", readMagic, magic)
 	}
 
-	// Read the header length
-	if err := binary.Read(r, byteOrder, &header.HeaderLength); err != nil {
+	// Read the header length (4 bytes)
+	if err := binary.Read(r, byteOrder, &headerLength); err != nil {
 		return nil, err
+	} else {
+		readBytes += 4
 	}
 
-	for {
-		entry := HeaderFileEntry{}
-
-		// Read the length of the file name
-		var length uint16
-		if err := binary.Read(r, byteOrder, &length); err != nil {
-			if err == io.EOF {
-				break
-			}
+	for readBytes < headerLength {
+		entry, err := DeserializeHeaderFile(r)
+		if err != nil {
 			return nil, err
+		} else {
+			readBytes += entry.totalBytes()
 		}
 
-		// Read the file name
-		name := make([]byte, length)
-		if _, err := io.ReadFull(r, name); err != nil {
-			return nil, err
-		}
-		entry.Name = string(name)
-
-		// Read the offset
-		if err := binary.Read(r, byteOrder, &entry.Offset); err != nil {
-			return nil, err
-		}
-
-		// Read the size
-		if err := binary.Read(r, byteOrder, &entry.Size); err != nil {
-			return nil, err
-		}
-
-		header.Entries = append(header.Entries, entry)
+		fileEntries = append(fileEntries, entry)
 	}
 
-	return header, nil
+	return &Header{
+		HeaderLength: headerLength,
+		Entries:      fileEntries,
+	}, nil
 }
