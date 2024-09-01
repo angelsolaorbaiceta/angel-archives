@@ -19,6 +19,7 @@ func CreateArchive(outFileName string, inFileNames []string) {
 		fmt.Fprintf(os.Stderr, "Error creating output file: %v\n", err)
 		os.Exit(1)
 	}
+	defer outFile.Close()
 
 	err = archive.Write(outFile)
 	if err != nil {

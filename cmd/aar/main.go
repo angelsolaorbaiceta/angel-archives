@@ -66,7 +66,9 @@ func createArchive() {
 	fmt.Fprintf(os.Stderr, "Archive created successfully.\n")
 }
 
-func extractArchive() {}
+func extractArchive() {
+	cmd.ExtractArchive(*fileName)
+}
 
 func listArchive() {
 	cmd.ListArchive(*fileName)

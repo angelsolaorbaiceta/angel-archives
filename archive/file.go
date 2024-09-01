@@ -19,6 +19,17 @@ func (f *ArchiveFile) Write(w io.Writer) error {
 	return err
 }
 
+// WriteDecompressed writes the decompressed bytes of the file into the provided writer.
+func (f *ArchiveFile) WriteDecompressed(w io.Writer) error {
+	decompressedBytes, err := f.DecompressedBytes()
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write(decompressedBytes)
+	return err
+}
+
 // CompressedSize returns the size of the compressed file in bytes.
 func (f *ArchiveFile) CompressedSize() uint32 {
 	return uint32(len(f.CompressedBytes))

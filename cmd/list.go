@@ -13,6 +13,7 @@ func ListArchive(fileName string) {
 		fmt.Fprintf(os.Stderr, "Error opening archive file: %v\n", err)
 		os.Exit(1)
 	}
+	defer reader.Close()
 
 	header, err := archive.ReadHeader(reader)
 	if err != nil {
