@@ -61,9 +61,13 @@ func createArchive() {
 		os.Exit(1)
 	}
 
+	fmt.Fprintf(os.Stderr, "Creating archive %s with %d files...\n", *fileName, len(fileNames))
 	cmd.CreateArchive(*fileName, fileNames)
+	fmt.Fprintf(os.Stderr, "Archive created successfully.\n")
 }
 
 func extractArchive() {}
 
-func listArchive() {}
+func listArchive() {
+	cmd.ListArchive(*fileName)
+}

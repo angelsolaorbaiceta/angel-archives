@@ -2,8 +2,29 @@
 
 An archiving tool that compresses and bundles files together into an _.aar_ archive.
 
+## Usage
 
-## Archive Header
+Creating an archive:
+
+```bash
+$ aar -c -f archive.aar file1.txt file2.txt file3.txt
+```
+
+Extracting an archive:
+
+```bash
+$ aar -x -f archive.aar
+```
+
+Listing the contents of an archive:
+
+```bash
+$ aar -l -f archive.aar
+```
+
+## File Format
+
+### Archive Header
 
 The archive file starts with a header that contains the following:
 

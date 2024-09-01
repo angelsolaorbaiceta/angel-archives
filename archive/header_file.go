@@ -2,6 +2,7 @@ package archive
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 )
 
@@ -25,6 +26,11 @@ func NewHeaderFileEntry(name string, size uint32) *HeaderFileEntry {
 		Offset: 0,
 		Size:   size,
 	}
+}
+
+// String returns a string representation of the HeaderFileEntry.
+func (f *HeaderFileEntry) String() string {
+	return fmt.Sprintf("%s (Offset in file: %d bytes, Compressed size: %d bytes)", f.Name, f.Offset, f.Size)
 }
 
 // nameLength returns the length of the file name in bytes.
