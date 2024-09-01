@@ -10,6 +10,8 @@ import (
 // magic is a unique identifier for the archive format.
 // It's the ASCII representation of "AAR?".
 var magic = []byte{0x41, 0x41, 0x52, 0x3F}
+
+// byteOrder is the byte order used to serialize integers.
 var byteOrder = binary.LittleEndian
 
 // Header represents the metadata of the archive.

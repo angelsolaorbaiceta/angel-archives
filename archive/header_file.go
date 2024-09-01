@@ -12,8 +12,19 @@ type HeaderFileEntry struct {
 	// Offset is the byte offset from the beginning of the archive where the file's data begins.
 	// Uses 4 bytes to store the offset.
 	Offset uint32
-	// Size is the size of the file's data in bytes. Uses 4 bytes to store the size.
+	// Size is the size of the file's compressed data in bytes. Uses 4 bytes to store the size.
 	Size uint32
+}
+
+// NewHeaderFileEntry creates a new header file entry with the given name and size,
+// setting the offset at 0, as it's impossible to know the offset until the whole
+// file is set up.
+func NewHeaderFileEntry(name string, size uint32) *HeaderFileEntry {
+	return &HeaderFileEntry{
+		Name:   name,
+		Offset: 0,
+		Size:   size,
+	}
 }
 
 // nameLength returns the length of the file name in bytes.

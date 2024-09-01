@@ -6,14 +6,16 @@ import (
 )
 
 // ArchiveFile represents a single file in the archive.
+// It includes the file's name and its compressed bytes.
+// The decompressed bytes can be obtained using the DecompressedBytes method.
 type ArchiveFile struct {
 	FileName        string
 	CompressedBytes []byte
 }
 
 // CompressedSize returns the size of the compressed file in bytes.
-func (f *ArchiveFile) CompressedSize() int32 {
-	return int32(len(f.CompressedBytes))
+func (f *ArchiveFile) CompressedSize() uint32 {
+	return uint32(len(f.CompressedBytes))
 }
 
 // DecompressedBytes returns the uncompressed bytes of the file.
