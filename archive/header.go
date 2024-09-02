@@ -1,7 +1,6 @@
 package archive
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -11,10 +10,13 @@ import (
 // It's the ASCII representation of "AAR?".
 var magic = []byte{0x41, 0x41, 0x52, 0x3F}
 
+// magicLen is the length of the magic field in bytes.
+const magicLen = uint32(4)
+
 // byteOrder is the byte order used to serialize integers.
 var byteOrder = binary.LittleEndian
 
-// Header represents the metadata of the archive.
+// A Header represents the metadata of the archive.
 // It includes the header's length in bytes and a list of file entries.
 type Header struct {
 	// HeaderLength is the length of the header in bytes, including the magic and header length fields.
@@ -67,24 +69,18 @@ func (h *Header) Write(w io.Writer) error {
 }
 
 // ReadHeader reads the header from the provided reader and returns a Header struct.
+// It doesn't close the reader.
 func ReadHeader(r io.Reader) (*Header, error) {
 	var (
-		readMagic    = make([]byte, 4)
 		headerLength uint32
 		readBytes    uint32 = 0
 		fileEntries  []*HeaderFileEntry
 	)
 
-	// Read 	// Read the magic (4 bytes)
-	if _, err := io.ReadFull(r, readMagic); err != nil {
+	if err := mustReadMagic(r); err != nil {
 		return nil, err
 	} else {
-		readBytes += 4
-	}
-
-	// Check if the magic is correct
-	if !bytes.Equal(magic, readMagic) {
-		return nil, fmt.Errorf("invalid magic: got %v, expected %v", readMagic, magic)
+		readBytes += magicLen
 	}
 
 	// Read the header length (4 bytes)
