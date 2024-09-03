@@ -80,6 +80,35 @@ func TestWriteAndReadArchive(t *testing.T) {
 	assert.Equal(t, archive, got)
 }
 
+func TestReadFileByName(t *testing.T) {
+	var (
+		fileOne    = createTempFileForTest(t, "fileOne.txt", "AAAAAAAA")
+		fileTwo    = createTempFileForTest(t, "fileTwo.txt", "BBBBBBBB")
+		archive, _ = Create([]string{fileOne.FileName, fileTwo.FileName})
+		arBytes    = new(bytes.Buffer)
+	)
+
+	archive.Write(arBytes)
+
+	t.Run("read fileOne", func(t *testing.T) {
+		var (
+			reader = bytes.NewReader(arBytes.Bytes())
+			got, _ = ReadFileByName(reader, fileOne.FileName)
+		)
+
+		assert.Equal(t, fileOne, got)
+	})
+
+	t.Run("read fileTwo", func(t *testing.T) {
+		var (
+			reader = bytes.NewReader(arBytes.Bytes())
+			got, _ = ReadFileByName(reader, fileTwo.FileName)
+		)
+
+		assert.Equal(t, fileTwo, got)
+	})
+}
+
 // createTempFileForTest creates a file in the test's temporal directory and returns
 // an ArchiveFile with the file's name and expected compressed bytes.
 func createTempFileForTest(t *testing.T, fileName, content string) *ArchiveFile {
@@ -94,8 +123,5 @@ func createTempFileForTest(t *testing.T, fileName, content string) *ArchiveFile 
 		t.Fatalf("Error compressing file: %v", err)
 	}
 
-	return &ArchiveFile{
-		FileName:        filePath,
-		CompressedBytes: compressedBytes,
-	}
+	return NewFileFromCompressedBytes(filePath, compressedBytes)
 }

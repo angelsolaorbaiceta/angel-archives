@@ -40,6 +40,14 @@ func (f *ArchiveFile) DecompressedBytes() ([]byte, error) {
 	return Decompress(f.CompressedBytes)
 }
 
+// NewFileFromCompressedBytes creates a new ArchiveFile from a file name and its bytes.
+func NewFileFromCompressedBytes(fileName string, data []byte) *ArchiveFile {
+	return &ArchiveFile{
+		FileName:        fileName,
+		CompressedBytes: data,
+	}
+}
+
 // NewFileFromReader creates a new ArchiveFile from a reader.
 // It reads its bytes, compresses them using xz, and returns the ArchiveFile.
 func NewFileFromReader(reader io.Reader, fileName string) (*ArchiveFile, error) {

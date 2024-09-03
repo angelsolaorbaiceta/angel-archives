@@ -110,3 +110,14 @@ func makeHeader(files []*ArchiveFile) (*Header, error) {
 		Entries:      entries,
 	}, nil
 }
+
+// ReadFileByName reads the archive's header until the name of the file is found.
+// Then, it reads the file's data and returns an ArchiveFile struct.
+// If the file is not found, it returns an ErrEntryNotFoundInHeader error.
+func ReadFileByName(r ReaderSeeker, fileName string) (*ArchiveFile, error) {
+	if fileHeaderEntry, err := FindHeaderEntryByName(r, fileName); err != nil {
+		return nil, err
+	} else {
+		return fileHeaderEntry.ReadFrom(r)
+	}
+}

@@ -106,3 +106,19 @@ func ReadHeaderFile(r io.Reader) (*HeaderFileEntry, error) {
 		Size:   size,
 	}, nil
 }
+
+// ReadFrom reads the file data from the provided ReaderSeeker, using the file's
+// offset and size
+func (f *HeaderFileEntry) ReadFrom(r ReaderSeeker) (*ArchiveFile, error) {
+	fileData := make([]byte, f.Size)
+
+	if _, err := r.Seek(int64(f.Offset-1), io.SeekStart); err != nil {
+		return nil, err
+	}
+
+	if _, err := r.Read(fileData); err != nil {
+		return nil, err
+	}
+
+	return NewFileFromCompressedBytes(f.Name, fileData), nil
+}

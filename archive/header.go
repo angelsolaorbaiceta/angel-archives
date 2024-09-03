@@ -107,8 +107,8 @@ func ReadHeader(r io.Reader) (*Header, error) {
 	}, nil
 }
 
-// errEntryNotFoundInHeader is returned when a file entry is not found in the header.
-var errEntryNotFoundInHeader = fmt.Errorf("entry not found in header")
+// ErrEntryNotFoundInHeader is returned when a file entry is not found in the header.
+var ErrEntryNotFoundInHeader = fmt.Errorf("entry not found in header")
 
 // FindHeaderEntryByName uses the reader to read the header until a file with the
 // provided name is found. It returns the file entry or a errEntryNotFoundInHeader
@@ -146,5 +146,5 @@ func FindHeaderEntryByName(r io.Reader, fileName string) (*HeaderFileEntry, erro
 		}
 	}
 
-	return nil, errEntryNotFoundInHeader
+	return nil, ErrEntryNotFoundInHeader
 }
