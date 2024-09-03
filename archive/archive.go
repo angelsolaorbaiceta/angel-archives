@@ -37,6 +37,7 @@ func (a *Archive) Write(w io.Writer) error {
 
 // ReadArchive reads an archive from the provided reader.
 // It reads all the files and the header, and returns an Archive struct.
+// It doesn't close the reader.
 func ReadArchive(r io.Reader) (*Archive, error) {
 	header, err := ReadHeader(r)
 	if err != nil {

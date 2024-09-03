@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHeaderSerialization(t *testing.T) {
+func TestWriteHeader(t *testing.T) {
 	header := Header{
 		// 4 bytes for magic +
 		// 4 bytes for header length +
