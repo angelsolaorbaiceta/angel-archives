@@ -95,3 +95,29 @@ func TestFindHeaderEntryByName(t *testing.T) {
 	assert.Equal(t, entry.Offset, uint32(27))
 	assert.Equal(t, entry.Size, uint32(4))
 }
+
+func TestReadFrom(t *testing.T) {
+	var (
+		data = []byte{
+			0x41, 0x41, 0x52, 0x3F, // magic
+			0x1A, 0x00, 0x00, 0x00, // header length
+			0x08, 0x00, // length of file name
+			't', 'e', 's', 't', '.', 't', 'x', 't', // file name
+			0x1B, 0x00, 0x00, 0x00, // offset
+			0x04, 0x00, 0x00, 0x00, // size
+			0x41, 0x41, 0x41, 0x41, // file data
+		}
+		reader = bytes.NewReader(data)
+		entry  = &HeaderFileEntry{
+			Name:   "test.txt",
+			Offset: 27,
+			Size:   4,
+		}
+		want = NewFileFromCompressedBytes("test.txt", []byte("AAAA"))
+	)
+
+	file, err := entry.ReadFrom(reader)
+
+	assert.Nil(t, err)
+	assert.Equal(t, file, want)
+}
