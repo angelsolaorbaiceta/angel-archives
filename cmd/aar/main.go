@@ -9,10 +9,11 @@ import (
 )
 
 var (
-	createFlag  = flag.Bool("c", false, "Create a new archive")
-	extractFlag = flag.Bool("x", false, "Extract an archive")
-	listFlag    = flag.Bool("l", false, "List the contents of an archive")
-	fileName    = flag.String("f", "", "Output filename of the archive")
+	createFlag      = flag.Bool("c", false, "Create a new archive")
+	extractFlag     = flag.Bool("x", false, "Extract an archive")
+	extractNameFlag = flag.String("n", "", "Extract a specific file by name from the archive")
+	listFlag        = flag.Bool("l", false, "List the contents of an archive")
+	fileName        = flag.String("f", "", "Output filename of the archive")
 )
 
 func main() {
@@ -22,7 +23,11 @@ func main() {
 	if *createFlag {
 		createArchive()
 	} else if *extractFlag {
-		extractArchive()
+		if *extractNameFlag != "" {
+			extractArchiveFile(*extractNameFlag)
+		} else {
+			extractArchive()
+		}
 	} else if *listFlag {
 		listArchive()
 	} else {
@@ -66,6 +71,10 @@ func createArchive() {
 
 func extractArchive() {
 	cmd.ExtractArchive(*fileName)
+}
+
+func extractArchiveFile(fileToExtract string) {
+	cmd.ExtractArchiveFile(*fileName, fileToExtract)
 }
 
 func listArchive() {
