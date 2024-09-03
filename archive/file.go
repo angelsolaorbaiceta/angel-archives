@@ -6,7 +6,7 @@ import (
 )
 
 // ArchiveFile represents a single file in the archive.
-// It includes the file's name and its compressed bytes.
+// It includes the file's name and its compressed bytes (using xz).
 // The decompressed bytes can be obtained using the DecompressedBytes method.
 type ArchiveFile struct {
 	FileName        string
@@ -41,7 +41,7 @@ func (f *ArchiveFile) DecompressedBytes() ([]byte, error) {
 }
 
 // NewFileFromReader creates a new ArchiveFile from a reader.
-// It reads its bytes, compresses them using gzip, and returns the ArchiveFile.
+// It reads its bytes, compresses them using xz, and returns the ArchiveFile.
 func NewFileFromReader(reader io.Reader, fileName string) (*ArchiveFile, error) {
 	data, err := io.ReadAll(reader)
 	if err != nil {
