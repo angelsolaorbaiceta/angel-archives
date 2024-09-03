@@ -2,6 +2,51 @@
 
 An archiving tool that xz-compresses and bundles files together into an archive.
 
+## Installation
+
+Make sure you’ve correctly installed Go v1.23 or greater and that the Go binaries are in your PATH (you want to append `$GOPATH/bin` to your `PATH` to access installed Go binaries).
+Then:
+
+```bash
+$ go install https://github.com/angelsolaorbaiceta/angel-archives@latest
+```
+
+You should have the _aar_ utility in your path:
+
+```bash
+$ which aar
+/Users/yourusername/go/bin/aar
+```
+
+Where in the example above, `/Users/yourusername/go` is the value of the `$GOPATH` variable.
+
+### Installation from source
+
+Alternatively, you can clone the repository:
+
+```bash
+$ git clone https://github.com/angelsolaorbaiceta/angel-archives
+```
+
+Install the project dependencies:
+
+```bash
+$ go mod tidy
+```
+
+And install the binary in your `$GOPATH/bin` by simply doing:
+
+```bash
+$ make install
+```
+
+You should have the _aar_ utility in your path:
+
+```bash
+$ which aar
+/Users/yourusername/go/bin/aar
+```
+
 ## Usage
 
 Creating an archive:
@@ -51,4 +96,10 @@ Example:
 "test.txt"          // File name
 0x00 0x00 0x00 0x1B // Offset (27 bytes)
 0x0B 0x00 0x00 0x00 // Length (11 bytes)
+...                 // Next go the file bytes
 ```
+
+### Archive Files
+
+The files are stored sequentially after the header.
+Their raw bytes are xz-compressed before being saved to disk.
