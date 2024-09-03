@@ -1,25 +1,31 @@
 # Angel Archives
 
-An archiving tool that compresses and bundles files together into an _.aar_ archive.
+An archiving tool that xz-compresses and bundles files together into an archive.
 
 ## Usage
 
 Creating an archive:
 
 ```bash
-$ aar -c -f archive.aar file1.txt file2.txt file3.txt
+$ aar -c -f archive.aarch file1.txt file2.txt file3.txt
 ```
 
-Extracting an archive:
+Extracting all files an archive:
 
 ```bash
-$ aar -x -f archive.aar
+$ aar -x -f archive.aarch
+```
+
+Extracting a single file by name from an archive:
+
+```bash
+$ aar -x -f archive.aarch -n file2.txt
 ```
 
 Listing the contents of an archive:
 
 ```bash
-$ aar -l -f archive.aar
+$ aar -l -f archive.aarch
 ```
 
 ## File Format
