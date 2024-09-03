@@ -16,3 +16,7 @@ build: ## Build the binary
 .PHONY: run
 run: ## Run the binary
 	go run cmd/aar/main.go
+	
+.PHONY: install
+install: ## Install the binary in $GOPATH/bin
+	go install ./cmd/aar
