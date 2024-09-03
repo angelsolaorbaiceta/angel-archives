@@ -66,3 +66,32 @@ func TestReadHeader(t *testing.T) {
 	assert.Equal(t, header.Entries[0].Offset, uint32(27))
 	assert.Equal(t, header.Entries[0].Size, uint32(4))
 }
+
+func TestFindHeaderEntryByName(t *testing.T) {
+	header := Header{
+		HeaderLength: 45,
+		Entries: []*HeaderFileEntry{
+			{
+				Name:   "test.txt",
+				Offset: 27,
+				Size:   4,
+			},
+			{
+				Name:   "test2.txt",
+				Offset: 31,
+				Size:   5,
+			},
+		},
+	}
+	headerBytes := new(bytes.Buffer)
+	header.Write(headerBytes)
+
+	reader := bytes.NewReader(headerBytes.Bytes())
+	entry, err := FindHeaderEntryByName(reader, "test.txt")
+
+	assert.Nil(t, err)
+	assert.NotNil(t, entry)
+	assert.Equal(t, entry.Name, "test.txt")
+	assert.Equal(t, entry.Offset, uint32(27))
+	assert.Equal(t, entry.Size, uint32(4))
+}

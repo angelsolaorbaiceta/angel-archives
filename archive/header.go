@@ -106,3 +106,45 @@ func ReadHeader(r io.Reader) (*Header, error) {
 		Entries:      fileEntries,
 	}, nil
 }
+
+// errEntryNotFoundInHeader is returned when a file entry is not found in the header.
+var errEntryNotFoundInHeader = fmt.Errorf("entry not found in header")
+
+// FindHeaderEntryByName uses the reader to read the header until a file with the
+// provided name is found. It returns the file entry or a errEntryNotFoundInHeader
+// error if the file is not found. Other errors can be returned if the reader fails.
+// The reader isn't closed.
+func FindHeaderEntryByName(r io.Reader, fileName string) (*HeaderFileEntry, error) {
+	var (
+		headerLength uint32
+		readBytes    uint32 = 0
+	)
+
+	if err := mustReadMagic(r); err != nil {
+		return nil, err
+	} else {
+		readBytes += magicLen
+	}
+
+	// Read the header length (4 bytes)
+	if err := binary.Read(r, byteOrder, &headerLength); err != nil {
+		return nil, err
+	} else {
+		readBytes += 4
+	}
+
+	for readBytes < headerLength {
+		entry, err := ReadHeaderFile(r)
+		if err != nil {
+			return nil, err
+		} else {
+			readBytes += entry.totalBytes()
+		}
+
+		if entry.Name == fileName {
+			return entry, nil
+		}
+	}
+
+	return nil, errEntryNotFoundInHeader
+}
