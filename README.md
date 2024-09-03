@@ -28,12 +28,6 @@ Alternatively, you can clone the repository:
 $ git clone https://github.com/angelsolaorbaiceta/angel-archives
 ```
 
-Install the project dependencies:
-
-```bash
-$ go mod tidy
-```
-
 And install the binary in your `$GOPATH/bin` by simply doing:
 
 ```bash
