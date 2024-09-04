@@ -8,75 +8,64 @@ import (
 	"github.com/angelsolaorbaiceta/aar/cmd"
 )
 
-var (
-	createFlag      = flag.Bool("c", false, "Create a new archive")
-	extractFlag     = flag.Bool("x", false, "Extract an archive")
-	extractNameFlag = flag.String("n", "", "Extract a specific file by name from the archive")
-	listFlag        = flag.Bool("l", false, "List the contents of an archive")
-	fileName        = flag.String("f", "", "Output filename of the archive")
-)
-
 func main() {
-	flag.Parse()
-	validateFlags()
+	var (
+		createCmd          = flag.NewFlagSet("create", flag.ExitOnError)
+		createFileNameFlag = createCmd.String("f", "", "Output filename of the archive")
 
-	if *createFlag {
-		createArchive()
-	} else if *extractFlag {
-		if *extractNameFlag != "" {
-			extractArchiveFile(*extractNameFlag)
-		} else {
-			extractArchive()
-		}
-	} else if *listFlag {
-		listArchive()
-	} else {
-		fmt.Println("Usage: aar [options] -f <filename>")
-		flag.PrintDefaults()
-	}
-}
+		extractCmd          = flag.NewFlagSet("extract", flag.ExitOnError)
+		extractFileNameFlag = extractCmd.String("f", "", "Filename of the archive to extract")
+		extractNameFlag     = extractCmd.String("n", "", "Extract a specific file by name from the archive")
 
-func validateFlags() {
-	activeFlags := 0
-	if *createFlag {
-		activeFlags++
-	}
-	if *extractFlag {
-		activeFlags++
-	}
-	if *listFlag {
-		activeFlags++
-	}
+		listCmd          = flag.NewFlagSet("list", flag.ExitOnError)
+		listFileNameFlag = listCmd.String("f", "", "Filename of the archive to list")
+	)
 
-	if activeFlags != 1 {
-		fmt.Fprintf(os.Stderr, "You must specify one of the -c (create), -x (extract), or -l (list) flags.\n")
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "Usage: aar <command> [options]\n")
 		os.Exit(1)
 	}
 
-	if *fileName == "" {
+	switch os.Args[1] {
+	case "create":
+		createCmd.Parse(os.Args[2:])
+		validateFileName(*createFileNameFlag)
+		fileNames := createCmd.Args()
+		createArchive(*createFileNameFlag, fileNames)
+
+	case "extract":
+		extractCmd.Parse(os.Args[2:])
+		validateFileName(*extractFileNameFlag)
+
+		if *extractNameFlag == "" {
+			cmd.ExtractArchive(*extractFileNameFlag)
+		} else {
+			cmd.ExtractArchiveFile(*extractFileNameFlag, *extractNameFlag)
+		}
+
+	case "list":
+		listCmd.Parse(os.Args[2:])
+		validateFileName(*listFileNameFlag)
+		cmd.ListArchive(*listFileNameFlag)
+
+	default:
+		fmt.Fprintf(os.Stderr, "Usage: aar <command> [options]\n")
+		os.Exit(1)
+	}
+}
+
+func validateFileName(name string) {
+	if name == "" {
 		fmt.Fprintf(os.Stderr, "You must specify a filename with the -f flag.\n")
 		os.Exit(1)
 	}
 }
 
-func createArchive() {
-	fileNames := flag.Args()
+func createArchive(fileName string, fileNames []string) {
 	if len(fileNames) == 0 {
 		fmt.Fprintf(os.Stderr, "You must specify at least one file to add to the archive.\n")
 		os.Exit(1)
 	}
 
-	cmd.CreateArchive(*fileName, fileNames)
-}
-
-func extractArchive() {
-	cmd.ExtractArchive(*fileName)
-}
-
-func extractArchiveFile(fileToExtract string) {
-	cmd.ExtractArchiveFile(*fileName, fileToExtract)
-}
-
-func listArchive() {
-	cmd.ListArchive(*fileName)
+	cmd.CreateArchive(fileName, fileNames)
 }
