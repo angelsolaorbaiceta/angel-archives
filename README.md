@@ -46,25 +46,25 @@ $ which aar
 Creating an archive:
 
 ```bash
-$ aar -c -f archive.aarch file1.txt file2.txt file3.txt
+$ aar create -f archive.aarch file1.txt file2.txt file3.txt
 ```
 
 Extracting all files an archive:
 
 ```bash
-$ aar -x -f archive.aarch
+$ aar extract -f archive.aarch
 ```
 
 Extracting a single file by name from an archive:
 
 ```bash
-$ aar -x -f archive.aarch -n file2.txt
+$ aar extract -f archive.aarch -n file2.txt
 ```
 
 Listing the contents of an archive:
 
 ```bash
-$ aar -l -f archive.aarch
+$ aar list -f archive.aarch
 ```
 
 ## File Format
