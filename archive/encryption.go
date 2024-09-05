@@ -11,6 +11,11 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
+const (
+	saltSize  = 16
+	nonceSize = 12
+)
+
 // An EncryptedArchive represents an encrypted archive.
 type EncryptedArchive struct {
 	bytes []byte
@@ -56,13 +61,13 @@ func ReadEncryptedArchive(r io.Reader) (*EncryptedArchive, error) {
 	}
 
 	// Read the salt (16 bytes)
-	salt := make([]byte, 16)
+	salt := make([]byte, saltSize)
 	if _, err := io.ReadFull(r, salt); err != nil {
 		return nil, err
 	}
 
 	// Read the nonce
-	nonce := make([]byte, 12)
+	nonce := make([]byte, nonceSize)
 	if _, err := io.ReadFull(r, nonce); err != nil {
 		return nil, err
 	}
@@ -83,7 +88,7 @@ func ReadEncryptedArchive(r io.Reader) (*EncryptedArchive, error) {
 // Encrypt encrypts the archive using AES-GCM with the provided password.
 func (a *Archive) Encrypt(password string) (*EncryptedArchive, error) {
 	// Generate a salt for key derivation (PBKDF2)
-	salt := make([]byte, 16)
+	salt := make([]byte, saltSize)
 	if _, err := rand.Read(salt); err != nil {
 		return nil, err
 	}
@@ -94,7 +99,8 @@ func (a *Archive) Encrypt(password string) (*EncryptedArchive, error) {
 	}
 
 	// Generate a nonce for AES-GCM (random IV)
-	nonce := make([]byte, aesGCM.NonceSize())
+	// aesGCM.NonceSize() returns 12 bytes
+	nonce := make([]byte, nonceSize)
 	if _, err := rand.Read(nonce); err != nil {
 		return nil, err
 	}
