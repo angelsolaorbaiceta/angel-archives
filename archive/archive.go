@@ -1,6 +1,9 @@
 package archive
 
-import "io"
+import (
+	"bytes"
+	"io"
+)
 
 // An Archive represents a collection of files stored in a single file.
 type Archive struct {
@@ -18,6 +21,16 @@ func (a *Archive) TotalSize() uint64 {
 	}
 
 	return total
+}
+
+// GetBytes returns the archive as a byte slice.
+func (a *Archive) GetBytes() ([]byte, error) {
+	data := new(bytes.Buffer)
+	if err := a.Write(data); err != nil {
+		return nil, err
+	}
+
+	return data.Bytes(), nil
 }
 
 // Write writes the archive into the provided writer.

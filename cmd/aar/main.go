@@ -19,6 +19,12 @@ func main() {
 
 		listCmd          = flag.NewFlagSet("list", flag.ExitOnError)
 		listFileNameFlag = listCmd.String("f", "", "Filename of the archive to list")
+
+		encryptCmd          = flag.NewFlagSet("encrypt", flag.ExitOnError)
+		encryptFileNameFlag = encryptCmd.String("f", "", "Filename of the archive to encrypt")
+
+		decryptCmd          = flag.NewFlagSet("decrypt", flag.ExitOnError)
+		decryptFileNameFlag = decryptCmd.String("f", "", "Filename of the archive to decrypt")
 	)
 
 	if len(os.Args) < 2 {
@@ -47,6 +53,20 @@ func main() {
 		listCmd.Parse(os.Args[2:])
 		validateFileName(*listFileNameFlag)
 		cmd.ListArchive(*listFileNameFlag)
+
+	case "encrypt":
+		encryptCmd.Parse(os.Args[2:])
+		validateFileName(*encryptFileNameFlag)
+		password := cmd.PromptPassword()
+
+		cmd.EncryptArchive(*encryptFileNameFlag, password)
+
+	case "decrypt":
+		decryptCmd.Parse(os.Args[2:])
+		validateFileName(*decryptFileNameFlag)
+		password := cmd.PromptPassword()
+
+		cmd.DecryptArchive(*decryptFileNameFlag, password)
 
 	default:
 		fmt.Fprintf(os.Stderr, "Usage: aar <command> [options]\n")
