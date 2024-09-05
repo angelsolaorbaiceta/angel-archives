@@ -72,6 +72,7 @@ Encrypting an archive:
 ```bash
 $ aar encrypt -f archive.aarch
 Password: <password>
+Confirm password: <password>
 ```
 
 Where `<password>` is the password you want to use to encrypt the archive, with a minimum length of 8 characters.
@@ -85,6 +86,7 @@ Decrypting an archive:
 ```bash
 $ aar decrypt -f archive.aarch.enc
 Password: <password>
+Confirm password: <password>
 ```
 
 Where `<password>` is the password you used to encrypt the archive.
