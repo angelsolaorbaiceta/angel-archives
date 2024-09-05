@@ -4,8 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"syscall"
 
 	"github.com/angelsolaorbaiceta/aar/cmd"
+	"golang.org/x/term"
 )
 
 func main() {
@@ -19,6 +21,12 @@ func main() {
 
 		listCmd          = flag.NewFlagSet("list", flag.ExitOnError)
 		listFileNameFlag = listCmd.String("f", "", "Filename of the archive to list")
+
+		encryptCmd          = flag.NewFlagSet("encrypt", flag.ExitOnError)
+		encryptFileNameFlag = encryptCmd.String("f", "", "Filename of the archive to encrypt")
+
+		decryptCmd          = flag.NewFlagSet("decrypt", flag.ExitOnError)
+		decryptFileNameFlag = decryptCmd.String("f", "", "Filename of the archive to decrypt")
 	)
 
 	if len(os.Args) < 2 {
@@ -48,6 +56,20 @@ func main() {
 		validateFileName(*listFileNameFlag)
 		cmd.ListArchive(*listFileNameFlag)
 
+	case "encrypt":
+		encryptCmd.Parse(os.Args[2:])
+		validateFileName(*encryptFileNameFlag)
+		password := promptPassword()
+
+		cmd.EncryptArchive(*encryptFileNameFlag, password)
+
+	case "decrypt":
+		decryptCmd.Parse(os.Args[2:])
+		validateFileName(*decryptFileNameFlag)
+		password := promptPassword()
+
+		cmd.DecryptArchive(*decryptFileNameFlag, password)
+
 	default:
 		fmt.Fprintf(os.Stderr, "Usage: aar <command> [options]\n")
 		os.Exit(1)
@@ -68,4 +90,29 @@ func createArchive(fileName string, fileNames []string) {
 	}
 
 	cmd.CreateArchive(fileName, fileNames)
+}
+
+func promptPassword() string {
+	fmt.Print("Password: ")
+
+	// Disable input echoing
+	passwordBytes, err := term.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading password: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println() // Move to the next line after password input
+
+	password := string(passwordBytes)
+	validatePassword(password)
+
+	return password
+}
+
+func validatePassword(password string) {
+	if len(password) < 8 {
+		fmt.Fprintf(os.Stderr, "The password must be at least 8 characters long.\n")
+		os.Exit(1)
+	}
 }

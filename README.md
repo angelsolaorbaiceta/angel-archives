@@ -67,6 +67,32 @@ Listing the contents of an archive:
 $ aar list -f archive.aarch
 ```
 
+Encrypting an archive:
+
+```bash
+$ aar encrypt -f archive.aarch
+Password: <password>
+```
+
+Where `<password>` is the password you want to use to encrypt the archive, with a minimum length of 8 characters.
+It removes the original _.aarch_ file and creates a new one with the encrypted data, with extension _.aarch.enc_.
+
+> [!NOTE]
+> The encryption is done using the AES-256-GCM algorithm, and it only works for angel archives.
+
+Decrypting an archive:
+
+```bash
+$ aar decrypt -f archive.aarch.enc
+Password: <password>
+```
+
+Where `<password>` is the password you used to encrypt the archive.
+It removes the encrypted _.aarch.enc_ file and creates a new one with the decrypted data, with extension _.aarch_.
+
+> [!NOTE]
+> The decryption is done using the AES-256-GCM algorithm, and it only works for encrypted angel archives.
+
 ## File Format
 
 ### Archive Header
