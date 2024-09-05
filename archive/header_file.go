@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+
+	"github.com/dustin/go-humanize"
 )
 
 // HeaderFileEntry represents a single file's metadata in the archive.
@@ -30,7 +32,11 @@ func NewHeaderFileEntry(name string, size uint32) *HeaderFileEntry {
 
 // String returns a string representation of the HeaderFileEntry.
 func (f *HeaderFileEntry) String() string {
-	return fmt.Sprintf("%s (Offset: %d bytes, Compressed size: %d bytes)", f.Name, f.Offset, f.Size)
+	var (
+		off  = humanize.Bytes(uint64(f.Offset))
+		size = humanize.Bytes(uint64(f.Size))
+	)
+	return fmt.Sprintf("%s (Offset: %s, Compressed size: %s)", f.Name, off, size)
 }
 
 // nameLength returns the length of the file name in bytes.

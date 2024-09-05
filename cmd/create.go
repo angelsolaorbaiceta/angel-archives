@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/angelsolaorbaiceta/aar/archive"
+	"github.com/dustin/go-humanize"
 )
 
 func CreateArchive(outFileName string, inFileNames []string) {
@@ -29,7 +30,12 @@ func CreateArchive(outFileName string, inFileNames []string) {
 		os.Exit(1)
 	}
 
+	var (
+		archSize   = humanize.Bytes(uint64(archive.TotalSize()))
+		headerSize = humanize.Bytes(uint64(archive.Header.HeaderLength))
+	)
+
 	fmt.Fprintf(os.Stderr, "Archive created successfully.\n")
-	fmt.Fprintf(os.Stderr, "	> Archive size = %d bytes.\n", archive.TotalSize())
-	fmt.Fprintf(os.Stderr, "	> Header size = %d bytes.\n", archive.Header.HeaderLength)
+	fmt.Fprintf(os.Stderr, "	> Archive size = %s.\n", archSize)
+	fmt.Fprintf(os.Stderr, "	> Header size = %s.\n", headerSize)
 }
