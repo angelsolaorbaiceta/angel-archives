@@ -6,13 +6,6 @@ import (
 	"io"
 )
 
-// magic is a unique identifier for the archive format.
-// It's the ASCII representation of "AAR?".
-var magic = []byte{0x41, 0x41, 0x52, 0x3F}
-
-// magicLen is the length of the magic field in bytes.
-const magicLen = uint32(4)
-
 // byteOrder is the byte order used to serialize integers.
 var byteOrder = binary.LittleEndian
 
