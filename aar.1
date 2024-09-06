@@ -1,0 +1,108 @@
+.TH AAR 1 "September 2024" "Angel Archives 1.0" "User Commands"
+.SH NAME
+aar \- Angel Archives, an archiving tool that xz-compresses and bundles files together into an archive, which can be encrypted.
+
+.SH SYNOPSIS
+
+.B aar create
+[\-f archive.aarch] [file1] [file2] ...
+
+.B aar extract
+[\-f archive.aarch] [\-n file]
+
+.B aar list
+[\-f archive.aarch]
+
+.B aar encrypt
+[\-f archive.aarch]
+
+.B aar decrypt
+[\-f archive.aarch]
+
+
+.SH DESCRIPTION
+
+Angel Archives (aar) is a command-line tool that xz-compresses and bundles files into a compressed archive format. 
+It also provides functionality to extract files from archives and list their contents.
+You can also encrypt archives with a password.
+
+
+.SH COMMANDS
+
+.TP
+.B create
+Create an archive by specifying a file and one or more files to compress.
+
+Example:
+
+.nf
+\fB$ aar create \-f archive.aarch file1.txt file2.txt file3.txt\fP
+.fi
+
+This will compress \fBfile1.txt\fP, \fBfile2.txt\fP, and \fBfile3.txt\fP into \fBarchive.aarch\fP.
+
+.TP
+.B extract
+Extract all or specific files from an archive. 
+
+Example (extract all files):
+
+.nf
+\fB$ aar extract \-f archive.aarch\fP
+.fi
+
+To extract a specific file by name:
+
+.nf
+\fB$ aar extract \-f archive.aarch \-n file2.txt\fP
+.fi
+
+.TP
+.B list
+List the contents of an archive.
+
+Example:
+
+.nf
+\fB$ aar list \-f archive.aarch\fP
+.fi
+
+.TP
+.B encrypt
+Encrypt an archive with a password using AES-256 in Galois/Counter Mode (GCM).
+The password will be prompted for when encrypting.
+The original archive will be replaced with the encrypted version, with the extension \fB.enc\fP.
+
+Example:
+
+.nf
+\fB$ aar encrypt \-f archive.aarch\fP
+.fi
+
+.TP
+.B decrypt
+Decrypt an encrypted archive with a password.
+The password will be prompted for when decrypting.
+The encrypted archive will be replaced with the decrypted version.
+
+Example:
+
+.nf
+\fB$ aar decrypt \-f archive.aarch\fP
+.fi
+
+
+.SH OPTIONS
+
+.TP
+.B \-f
+Specifies the archive file to work with.
+.TP
+.B \-n
+Used with the \fBextract\fP command to specify a file by name for extraction.
+
+.SH SEE ALSO
+.B tar(1), xz(1), aes(n)
+
+.SH AUTHOR
+Written by Angel Sola Orbaiceta.
