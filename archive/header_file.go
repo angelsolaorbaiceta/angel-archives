@@ -32,11 +32,12 @@ func NewHeaderFileEntry(name string, size uint32) *HeaderFileEntry {
 
 // String returns a string representation of the HeaderFileEntry.
 func (f *HeaderFileEntry) String() string {
-	var (
-		off  = humanize.Bytes(uint64(f.Offset))
-		size = humanize.Bytes(uint64(f.Size))
+	size := humanize.Bytes(uint64(f.Size))
+
+	return fmt.Sprintf(
+		"%s (Offset: %d bytes, Compressed size: %s [%d bytes])",
+		f.Name, f.Offset, size, f.Size,
 	)
-	return fmt.Sprintf("%s (Offset: %s, Compressed size: %s)", f.Name, off, size)
 }
 
 // nameLength returns the length of the file name in bytes.
