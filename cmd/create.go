@@ -38,4 +38,9 @@ func CreateArchive(outFileName string, inFileNames []string) {
 	fmt.Fprintf(os.Stderr, "Archive created successfully.\n")
 	fmt.Fprintf(os.Stderr, "	> Archive size = %s.\n", archSize)
 	fmt.Fprintf(os.Stderr, "	> Header size = %s.\n", headerSize)
+	fmt.Fprintf(os.Stderr, "Files in archive:\n")
+	for _, file := range archive.Files {
+		size := humanize.Bytes(uint64(file.CompressedSize()))
+		fmt.Fprintf(os.Stderr, "	> %s (compressed size = %s)\n", file.FileName, size)
+	}
 }

@@ -86,16 +86,35 @@ func Create(filePaths []string) (*Archive, error) {
 	}, nil
 }
 
+// readFiles reads the files concurrently from the provided file paths.
+// Each file is xz-compressed and stored in an ArchiveFile struct.
+// The order of the files is preserved.
 func readFiles(filePaths []string) ([]*ArchiveFile, error) {
-	files := make([]*ArchiveFile, len(filePaths))
+	type item struct {
+		file *ArchiveFile
+		err  error
+		idx  int
+	}
+
+	var (
+		files = make([]*ArchiveFile, len(filePaths))
+		ch    = make(chan item, len(filePaths))
+	)
 
 	for i, path := range filePaths {
-		file, err := NewFileFromPath(path)
-		if err != nil {
-			return nil, err
+		go func(path string) {
+			file, err := NewFileFromPath(path)
+			ch <- item{file, err, i}
+		}(path)
+	}
+
+	for range filePaths {
+		it := <-ch
+		if it.err != nil {
+			return nil, it.err
 		}
 
-		files[i] = file
+		files[it.idx] = it.file
 	}
 
 	return files, nil
