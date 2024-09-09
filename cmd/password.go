@@ -8,7 +8,7 @@ import (
 	"golang.org/x/term"
 )
 
-func PromptPassword() string {
+func PromptPasswordWithConfirmation() string {
 	fmt.Print("Password: ")
 	passwordBytes, err := term.ReadPassword(int(syscall.Stdin))
 	if err != nil {
@@ -39,6 +39,20 @@ func PromptPassword() string {
 	}
 
 	return password
+}
+
+func PromptPassword() string {
+	fmt.Print("Password: ")
+	passwordBytes, err := term.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading password: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Move to the next line after password input
+	fmt.Println()
+
+	return string(passwordBytes)
 }
 
 func validatePassword(password string) {

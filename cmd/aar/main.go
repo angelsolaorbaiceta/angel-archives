@@ -57,7 +57,7 @@ func main() {
 	case "encrypt":
 		encryptCmd.Parse(os.Args[2:])
 		validateFileName(*encryptFileNameFlag)
-		password := cmd.PromptPassword()
+		password := cmd.PromptPasswordWithConfirmation()
 
 		cmd.EncryptArchive(*encryptFileNameFlag, password)
 
