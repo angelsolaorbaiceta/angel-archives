@@ -1,6 +1,7 @@
 # Angel Archives
 
 An archiving tool that xz-compresses and bundles files together into an archive.
+Archives can be encrypted and decrypted for maximum privacy.
 
 ## Installation
 
