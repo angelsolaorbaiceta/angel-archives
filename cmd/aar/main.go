@@ -18,6 +18,7 @@ func main() {
 		extractCmd          = flag.NewFlagSet("extract", flag.ExitOnError)
 		extractFileNameFlag = extractCmd.String("f", "", "Filename of the archive to extract")
 		extractNameFlag     = extractCmd.String("n", "", "Extract a specific file by name from the archive")
+		extractDecryptFlag  = extractCmd.Bool("decrypt", false, "Decrypt the archive before extracting")
 		extractHelpFlag     = extractCmd.Bool("help", false, "Show help for extract command")
 
 		listCmd          = flag.NewFlagSet("list", flag.ExitOnError)
@@ -63,9 +64,9 @@ func main() {
 		validateFileName(*extractFileNameFlag)
 
 		if *extractNameFlag == "" {
-			cmd.ExtractArchive(*extractFileNameFlag)
+			cmd.ExtractArchive(*extractFileNameFlag, *extractDecryptFlag)
 		} else {
-			cmd.ExtractArchiveFile(*extractFileNameFlag, *extractNameFlag)
+			cmd.ExtractArchiveFile(*extractFileNameFlag, *extractNameFlag, *extractDecryptFlag)
 		}
 
 	case "list":
@@ -151,15 +152,17 @@ func showCreateHelp() {
 
 func showExtractHelp() {
 	fmt.Fprintf(os.Stderr, "aar extract - Extract files from an archive\n\n")
-	fmt.Fprintf(os.Stderr, "Usage: aar extract -f <archive> [-n <filename>]\n\n")
+	fmt.Fprintf(os.Stderr, "Usage: aar extract -f <archive> [--decrypt] [-n <filename>]\n\n")
 	fmt.Fprintf(os.Stderr, "Options:\n")
 	fmt.Fprintf(os.Stderr, "  -f <archive>   Filename of the archive to extract\n")
 	fmt.Fprintf(os.Stderr, "  -n <filename>  Extract a specific file by name (optional)\n")
+	fmt.Fprintf(os.Stderr, "  --decrypt      Decrypt the archive before extracting\n")
 	fmt.Fprintf(os.Stderr, "  --help         Show this help message\n\n")
 	fmt.Fprintf(os.Stderr, "Examples:\n")
-	fmt.Fprintf(os.Stderr, "  aar extract -f archive.aarch\n")
-	fmt.Fprintf(os.Stderr, "  aar extract -f archive.aarch -n file2.txt\n")
-	fmt.Fprintf(os.Stderr, "  aar extract -f backup.aarch -n important.doc\n")
+	fmt.Fprintf(os.Stderr, "  aar extract -f archive.aar\n")
+	fmt.Fprintf(os.Stderr, "  aar extract -f archive.aar -n file2.txt\n")
+	fmt.Fprintf(os.Stderr, "  aar extract -f secret.aar.enc --decrypt\n")
+	fmt.Fprintf(os.Stderr, "  aar extract -f secret.aar.enc --decrypt -n file2.txt\n")
 }
 
 func showListHelp() {
