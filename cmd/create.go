@@ -8,7 +8,7 @@ import (
 	"github.com/dustin/go-humanize"
 )
 
-func CreateArchive(outFileName string, inFileNames []string) {
+func CreateArchive(outFileName string, inFileNames []string, encrypt bool) {
 	fmt.Fprintf(os.Stderr, "Creating archive %s with %d files...\n", outFileName, len(inFileNames))
 
 	archive, err := archive.Create(inFileNames)
@@ -24,10 +24,25 @@ func CreateArchive(outFileName string, inFileNames []string) {
 	}
 	defer outFile.Close()
 
-	err = archive.Write(outFile)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error writing archive: %v\n", err)
-		os.Exit(1)
+	if encrypt {
+		password := PromptPasswordWithConfirmation()
+		encryptedArchive, err := archive.Encrypt(password)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error encrypting archive: %v\n", err)
+			os.Exit(1)
+		}
+		
+		err = encryptedArchive.Write(outFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error writing encrypted archive: %v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		err = archive.Write(outFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error writing archive: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	var (

@@ -12,6 +12,7 @@ func main() {
 	var (
 		createCmd          = flag.NewFlagSet("create", flag.ExitOnError)
 		createFileNameFlag = createCmd.String("f", "", "Output filename of the archive")
+		createEncryptFlag  = createCmd.Bool("encrypt", false, "Encrypt the archive with a password")
 		createHelpFlag     = createCmd.Bool("help", false, "Show help for create command")
 
 		extractCmd          = flag.NewFlagSet("extract", flag.ExitOnError)
@@ -51,7 +52,7 @@ func main() {
 		}
 		validateFileName(*createFileNameFlag)
 		fileNames := createCmd.Args()
-		createArchive(*createFileNameFlag, fileNames)
+		createArchive(*createFileNameFlag, fileNames, *createEncryptFlag)
 
 	case "extract":
 		extractCmd.Parse(os.Args[2:])
@@ -111,13 +112,13 @@ func validateFileName(name string) {
 	}
 }
 
-func createArchive(fileName string, fileNames []string) {
+func createArchive(fileName string, fileNames []string, encrypt bool) {
 	if len(fileNames) == 0 {
 		fmt.Fprintf(os.Stderr, "You must specify at least one file to add to the archive.\n")
 		os.Exit(1)
 	}
 
-	cmd.CreateArchive(fileName, fileNames)
+	cmd.CreateArchive(fileName, fileNames, encrypt)
 }
 
 func showMainHelp() {
@@ -136,14 +137,16 @@ func showMainHelp() {
 
 func showCreateHelp() {
 	fmt.Fprintf(os.Stderr, "aar create - Create a new archive from files\n\n")
-	fmt.Fprintf(os.Stderr, "Usage: aar create -f <archive> <file1> [file2] ...\n\n")
+	fmt.Fprintf(os.Stderr, "Usage: aar create -f <archive> [--encrypt] <file1> [file2] ...\n\n")
 	fmt.Fprintf(os.Stderr, "Options:\n")
 	fmt.Fprintf(os.Stderr, "  -f <archive>  Output filename of the archive\n")
+	fmt.Fprintf(os.Stderr, "  --encrypt     Encrypt the archive with a password (creates .aar.enc file)\n")
 	fmt.Fprintf(os.Stderr, "  --help        Show this help message\n\n")
 	fmt.Fprintf(os.Stderr, "Examples:\n")
-	fmt.Fprintf(os.Stderr, "  aar create -f archive.aarch file1.txt file2.txt file3.txt\n")
-	fmt.Fprintf(os.Stderr, "  aar create -f backup.aarch *.txt\n")
-	fmt.Fprintf(os.Stderr, "  aar create -f project.aarch src/ docs/ README.md\n")
+	fmt.Fprintf(os.Stderr, "  aar create -f archive.aar file1.txt file2.txt file3.txt\n")
+	fmt.Fprintf(os.Stderr, "  aar create -f backup.aar *.txt\n")
+	fmt.Fprintf(os.Stderr, "  aar create -f project.aar src/ docs/ README.md\n")
+	fmt.Fprintf(os.Stderr, "  aar create -f secret.aar.enc --encrypt file1.txt file2.txt\n")
 }
 
 func showExtractHelp() {
