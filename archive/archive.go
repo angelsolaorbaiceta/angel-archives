@@ -2,7 +2,10 @@ package archive
 
 import (
 	"bytes"
+	"errors"
 	"io"
+	"runtime"
+	"sync"
 )
 
 // An Archive represents a collection of xz-compressed files stored in a single file.
@@ -90,34 +93,27 @@ func Create(filePaths []string) (*Archive, error) {
 // Each file is xz-compressed and stored in an ArchiveFile struct.
 // The order of the files is preserved.
 func readAndCompressFiles(filePaths []string) ([]*ArchiveFile, error) {
-	type compressionUnit struct {
-		file *ArchiveFile
-		err  error
-		idx  int
-	}
-
 	var (
 		files = make([]*ArchiveFile, len(filePaths))
-		ch    = make(chan compressionUnit, len(filePaths))
+		errs  = make([]error, len(filePaths))
+		sem   = make(chan struct{}, runtime.GOMAXPROCS(0))
+		wg    sync.WaitGroup
 	)
 
 	for i, path := range filePaths {
-		go func(path string) {
-			file, err := NewFileFromPath(path)
-			ch <- compressionUnit{file, err, i}
-		}(path)
+		wg.Add(1)
+		sem <- struct{}{} // Blocks once N are in flight
+
+		go func(i int, path string) {
+			defer wg.Done()
+			defer func() { <-sem }()
+
+			files[i], errs[i] = NewFileFromPath(path)
+		}(i, path)
 	}
+	wg.Wait()
 
-	for range filePaths {
-		it := <-ch
-		if it.err != nil {
-			return nil, it.err
-		}
-
-		files[it.idx] = it.file
-	}
-
-	return files, nil
+	return files, errors.Join(errs...)
 }
 
 func makeHeader(files []*ArchiveFile) (*Header, error) {
