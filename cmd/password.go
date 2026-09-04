@@ -7,7 +7,7 @@ import (
 	"golang.org/x/term"
 )
 
-func PromptPasswordWithConfirmation() string {
+func promptPasswordWithConfirmation() string {
 	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening terminal: %v\n", err)
@@ -47,7 +47,7 @@ func PromptPasswordWithConfirmation() string {
 	return password
 }
 
-func PromptPassword() string {
+func promptPassword() string {
 	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening terminal: %v\n", err)

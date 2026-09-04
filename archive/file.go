@@ -73,6 +73,7 @@ func NewFileFromPath(path string) (*ArchiveFile, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer reader.Close()
 
 	return NewFileFromReader(reader, path)
 }
