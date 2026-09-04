@@ -55,6 +55,7 @@ func (a *EncryptedArchive) Write(w io.Writer) error {
 }
 
 // ReadEncryptedArchive reads an encrypted archive from the provided reader.
+// Expects to read from an encrypted archive, returns an error otherwise.
 func ReadEncryptedArchive(r io.Reader) (*EncryptedArchive, error) {
 	if magic := readMagic(r); magic != FileMagicEncArchive {
 		return nil, ErrWrongFileType

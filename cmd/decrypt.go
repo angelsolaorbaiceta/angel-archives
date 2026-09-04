@@ -48,7 +48,11 @@ func decryptArchive(fileName, password string) {
 	encArch, err := archive.ReadEncryptedArchive(reader)
 	reader.Close()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading encrypted archive: %v\n", err)
+		if err == archive.ErrWrongFileType {
+			fmt.Fprintf(os.Stderr, "Can only decrypt .aar.enc files\n")
+		} else {
+			fmt.Fprintf(os.Stderr, "Error reading encrypted archive: %v\n", err)
+		}
 		os.Exit(1)
 	}
 

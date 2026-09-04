@@ -52,7 +52,11 @@ func extractArchive(fileName string, decrypt bool) {
 	if decrypt {
 		encryptedArch, err := archive.ReadEncryptedArchive(reader)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading encrypted archive: %v\n", err)
+			if err == archive.ErrWrongFileType {
+				fmt.Fprintf(os.Stderr, "The archive wasn't encrypted or isn't an .aar archive\n")
+			} else {
+				fmt.Fprintf(os.Stderr, "Error reading encrypted archive: %v\n", err)
+			}
 			os.Exit(1)
 		}
 
@@ -65,7 +69,11 @@ func extractArchive(fileName string, decrypt bool) {
 	} else {
 		arch, err = archive.ReadArchive(reader)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading archive: %v\n", err)
+			if err == archive.ErrWrongFileType {
+				fmt.Fprintf(os.Stderr, "An only unarchive .aar arvhives\n")
+			} else {
+				fmt.Fprintf(os.Stderr, "Error reading archive: %v\n", err)
+			}
 			os.Exit(1)
 		}
 	}

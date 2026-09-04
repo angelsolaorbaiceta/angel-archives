@@ -49,7 +49,11 @@ func encryptArchive(fileName, password string) {
 	arch, err := archive.ReadArchive(reader)
 	reader.Close()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading archive: %v\n", err)
+		if err == archive.ErrWrongFileType {
+			fmt.Fprintf(os.Stderr, "Can only encrypt .aar archives\n")
+		} else {
+			fmt.Fprintf(os.Stderr, "Error reading archive: %v\n", err)
+		}
 		os.Exit(1)
 	}
 

@@ -74,13 +74,19 @@ func createArchive(
 	// finishes, rather than being held back until the whole archive is done.
 	onProgress := func(p archive.Progress) {
 		if p.Err != nil {
-			fmt.Fprintf(os.Stderr, "	[%d/%d] %s: FAILED: %v\n",
-				p.Done, p.Total, p.Path, p.Err)
+			fmt.Fprintf(
+				os.Stderr,
+				"	[%d/%d] %s: FAILED: %v\n",
+				p.Done, p.Total, p.Path, p.Err,
+			)
 			return
 		}
 
-		fmt.Fprintf(os.Stderr, "	[%d/%d] %s (compressed size = %s)\n",
-			p.Done, p.Total, p.Path, humanize.Bytes(uint64(p.Compressed)))
+		fmt.Fprintf(
+			os.Stderr,
+			"	[%d/%d] %s (compressed size = %s)\n",
+			p.Done, p.Total, p.Path, humanize.Bytes(uint64(p.Compressed)),
+		)
 	}
 
 	archive, err := archive.Create(inFileNames, onProgress)
