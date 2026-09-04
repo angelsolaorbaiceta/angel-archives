@@ -5,9 +5,42 @@ import (
 	"os"
 
 	"github.com/angelsolaorbaiceta/aar/archive"
+	"github.com/spf13/cobra"
 )
 
-func ExtractArchive(fileName string, decrypt bool) {
+var (
+	extractFileName string
+	extractName     string
+	extractDecrypt  bool
+
+	extractCmd = &cobra.Command{
+		Use:                   "extract -f <archive> [--decrypt] [-n <filename>]",
+		Short:                 "Extract files from an archive",
+		DisableFlagsInUseLine: true,
+		Example: `  aar extract -f archive.aar
+  aar extract -f archive.aar -n file2.txt
+  aar extract -f secret.aar.enc --decrypt
+  aar extract -f secret.aar.enc --decrypt -n file2.txt`,
+		Args: cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			if extractName == "" {
+				extractArchive(extractFileName, extractDecrypt)
+			} else {
+				extractArchiveFile(extractFileName, extractName, extractDecrypt)
+			}
+		},
+	}
+)
+
+func init() {
+	addFileNameFlag(extractCmd, &extractFileName, "Filename of the archive to extract")
+	extractCmd.Flags().StringVarP(&extractName, "name", "n", "", "Extract a specific file by name from the archive")
+	extractCmd.Flags().BoolVar(&extractDecrypt, "decrypt", false, "Decrypt the archive before extracting")
+
+	rootCmd.AddCommand(extractCmd)
+}
+
+func extractArchive(fileName string, decrypt bool) {
 	reader, err := os.OpenFile(fileName, os.O_RDONLY, 0)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening archive file: %v\n", err)
@@ -22,8 +55,8 @@ func ExtractArchive(fileName string, decrypt bool) {
 			fmt.Fprintf(os.Stderr, "Error reading encrypted archive: %v\n", err)
 			os.Exit(1)
 		}
-		
-		password := PromptPassword()
+
+		password := promptPassword()
 		arch, err = encryptedArch.Decrypt(password)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error decrypting archive: %v\n", err)
@@ -54,7 +87,7 @@ func ExtractArchive(fileName string, decrypt bool) {
 	}
 }
 
-func ExtractArchiveFile(fileName, fileToExtract string, decrypt bool) {
+func extractArchiveFile(fileName, fileToExtract string, decrypt bool) {
 	reader, err := os.OpenFile(fileName, os.O_RDONLY, 0)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening archive file: %v\n", err)
@@ -69,14 +102,14 @@ func ExtractArchiveFile(fileName, fileToExtract string, decrypt bool) {
 			fmt.Fprintf(os.Stderr, "Error reading encrypted archive: %v\n", err)
 			os.Exit(1)
 		}
-		
-		password := PromptPassword()
+
+		password := promptPassword()
 		arch, err := encryptedArch.Decrypt(password)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error decrypting archive: %v\n", err)
 			os.Exit(1)
 		}
-		
+
 		var found bool
 		for _, file := range arch.Files {
 			if file.FileName == fileToExtract {

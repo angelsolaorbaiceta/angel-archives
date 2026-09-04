@@ -5,53 +5,37 @@ import (
 	"os"
 
 	"github.com/angelsolaorbaiceta/aar/archive"
+	"github.com/spf13/cobra"
 )
 
-func EncryptArchive(fileName, password string) {
-	// Read the archive
-	reader, err := os.OpenFile(fileName, os.O_RDONLY, 0)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error opening archive file: %v\n", err)
-		os.Exit(1)
-	}
+var (
+	decryptFileName string
 
-	arch, err := archive.ReadArchive(reader)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading archive: %v\n", err)
-		os.Exit(1)
-	}
+	decryptCmd = &cobra.Command{
+		Use:                   "decrypt -f <encrypted_archive>",
+		Short:                 "Decrypt an encrypted archive",
+		DisableFlagsInUseLine: true,
+		Long: `Decrypt an encrypted archive.
 
-	// Encrypt the archive
-	encArch, err := arch.Encrypt(password)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error encrypting archive: %v\n", err)
-		os.Exit(1)
+Decrypts an archive using AES-256-GCM algorithm. Creates a new file
+without the .enc extension and removes the encrypted archive.`,
+		Example: `  aar decrypt -f archive.aar.enc
+  aar decrypt -f backup.aar.enc`,
+		Args: cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			password := promptPassword()
+			decryptArchive(decryptFileName, password)
+		},
 	}
+)
 
-	// Write the encrypted archive to disk
-	encFileName := fileName + ".enc"
-	encFile, err := os.Create(encFileName)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating encrypted archive file: %v\n", err)
-		os.Exit(1)
-	}
-	defer encFile.Close()
+func init() {
+	addFileNameFlag(decryptCmd, &decryptFileName, "Filename of the encrypted archive to decrypt")
 
-	if err := encArch.Write(encFile); err != nil {
-		fmt.Fprintf(os.Stderr, "Error writing encrypted archive file: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Fprintf(os.Stderr, "Archive encrypted successfully to %s\n", encFileName)
-
-	// Remove the original archive
-	if err := os.Remove(fileName); err != nil {
-		fmt.Fprintf(os.Stderr, "Error removing original archive: %v\n", err)
-		os.Exit(1)
-	}
+	rootCmd.AddCommand(decryptCmd)
 }
 
-func DecryptArchive(fileName, password string) {
+func decryptArchive(fileName, password string) {
 	// Read the encrypted archive
 	reader, err := os.OpenFile(fileName, os.O_RDONLY, 0)
 	if err != nil {
@@ -59,7 +43,10 @@ func DecryptArchive(fileName, password string) {
 		os.Exit(1)
 	}
 
+	// The whole archive is read into memory, so the file can be closed right
+	// away. It needs to be closed before removing it below.
 	encArch, err := archive.ReadEncryptedArchive(reader)
+	reader.Close()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading encrypted archive: %v\n", err)
 		os.Exit(1)
@@ -73,7 +60,7 @@ func DecryptArchive(fileName, password string) {
 	}
 
 	// Write the decrypted archive to disk
-	decFileName := decryptFileName(fileName)
+	decFileName := decryptedFileName(fileName)
 	decFile, err := os.Create(decFileName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating decrypted archive file: %v\n", err)
@@ -95,10 +82,10 @@ func DecryptArchive(fileName, password string) {
 	}
 }
 
-// decryptFileName returns the decrypted file name from the encrypted file name.
+// decryptedFileName returns the decrypted file name from the encrypted file name.
 // If the file name doesn't end with ".enc", it appends ".dec" to the file name.
 // Otherwise, it removes the ".enc" extension.
-func decryptFileName(fileName string) string {
+func decryptedFileName(fileName string) string {
 	if len(fileName) < 4 || fileName[len(fileName)-4:] != ".enc" {
 		return fileName + ".dec"
 	}
