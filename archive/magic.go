@@ -6,6 +6,14 @@ import (
 	"io"
 )
 
+type FileMagicType string
+
+const (
+	FileMagicUnknown    FileMagicType = "Unknown"
+	FileMagicArchive    FileMagicType = "Archive"
+	FileMagicEncArchive FileMagicType = "EncArchive"
+)
+
 // magic is a unique identifier for the archive format.
 // It's the ASCII representation of "AAR?".
 var magic = []byte{0x41, 0x41, 0x52, 0x3F}
@@ -23,17 +31,33 @@ var ErrInvalidMagic = fmt.Errorf("invalid magic, expected %v", magic)
 // ErrInvalidEncMagic is returned when the magic field is not correct.
 var ErrInvalidEncMagic = fmt.Errorf("invalid magic, expected %v", encMagic)
 
+// readMagic identifies the magic bytes in the reader, and returns its type.
+func ReadMagic(r io.Reader) FileMagicType {
+	readMagic := make([]byte, 4)
+	if _, err := io.ReadFull(r, readMagic); err != nil {
+		return FileMagicUnknown
+	}
+
+	if bytes.Equal(magic, readMagic) {
+		return FileMagicArchive
+	}
+
+	if bytes.Equal(encMagic, readMagic) {
+		return FileMagicEncArchive
+	}
+
+	return FileMagicUnknown
+}
+
 // mustReadMagic reads the magic field from the provided reader.
 // If the magic field is not correct, it returns an error.
 func mustReadMagic(r io.Reader) error {
 	readMagic := make([]byte, 4)
 
-	// Read the magic (4 bytes)
 	if _, err := io.ReadFull(r, readMagic); err != nil {
 		return err
 	}
 
-	// Check if the magic is correct
 	if !bytes.Equal(magic, readMagic) {
 		return ErrInvalidMagic
 	}
@@ -45,12 +69,10 @@ func mustReadMagic(r io.Reader) error {
 func mustReadEncryptedMagic(r io.Reader) error {
 	readMagic := make([]byte, 4)
 
-	// Read the magic (4 bytes)
 	if _, err := io.ReadFull(r, readMagic); err != nil {
 		return err
 	}
 
-	// Check if the magic is correct
 	if !bytes.Equal(encMagic, readMagic) {
 		return ErrInvalidEncMagic
 	}
