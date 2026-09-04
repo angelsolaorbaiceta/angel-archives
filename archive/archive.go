@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-// An Archive represents a collection of files stored in a single file.
+// An Archive represents a collection of xz-compressed files stored in a single file.
 type Archive struct {
 	Header *Header
 	Files  []*ArchiveFile
@@ -70,7 +70,7 @@ func ReadArchive(r io.Reader) (*Archive, error) {
 
 // Create creates a new archive from the provided file paths.
 func Create(filePaths []string) (*Archive, error) {
-	files, err := readFiles(filePaths)
+	files, err := readAndCompressFiles(filePaths)
 	if err != nil {
 		return nil, err
 	}
@@ -86,11 +86,11 @@ func Create(filePaths []string) (*Archive, error) {
 	}, nil
 }
 
-// readFiles reads the files concurrently from the provided file paths.
+// readAndCompressFiles reads the files concurrently from the provided file paths.
 // Each file is xz-compressed and stored in an ArchiveFile struct.
 // The order of the files is preserved.
-func readFiles(filePaths []string) ([]*ArchiveFile, error) {
-	type item struct {
+func readAndCompressFiles(filePaths []string) ([]*ArchiveFile, error) {
+	type compressionUnit struct {
 		file *ArchiveFile
 		err  error
 		idx  int
@@ -98,13 +98,13 @@ func readFiles(filePaths []string) ([]*ArchiveFile, error) {
 
 	var (
 		files = make([]*ArchiveFile, len(filePaths))
-		ch    = make(chan item, len(filePaths))
+		ch    = make(chan compressionUnit, len(filePaths))
 	)
 
 	for i, path := range filePaths {
 		go func(path string) {
 			file, err := NewFileFromPath(path)
-			ch <- item{file, err, i}
+			ch <- compressionUnit{file, err, i}
 		}(path)
 	}
 

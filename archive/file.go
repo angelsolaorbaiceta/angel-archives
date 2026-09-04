@@ -67,7 +67,9 @@ func NewFileFromReader(reader io.Reader, fileName string) (*ArchiveFile, error) 
 	}, nil
 }
 
-// NewFileFromPath creates a new ArchiveFile from a file path.
+// NewFileFromPath creates a new ArchiveFile from a file path, by reading its
+// bytes and xz-compressing them.
+// Returns an error if the file path can't be opened or the file can't be read from.
 func NewFileFromPath(path string) (*ArchiveFile, error) {
 	reader, err := os.Open(path)
 	if err != nil {
