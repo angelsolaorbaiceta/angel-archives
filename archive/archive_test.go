@@ -2,6 +2,7 @@ package archive
 
 import (
 	"bytes"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,7 +14,7 @@ func TestCreateArchive(t *testing.T) {
 	var (
 		fileOne      = createTempFileForTest(t, "fileOne.txt", "AAAAAAAA")
 		fileTwo      = createTempFileForTest(t, "fileTwo.txt", "BBBBBBBB")
-		archive, err = Create([]string{fileOne.FileName, fileTwo.FileName})
+		archive, err = Create([]string{fileOne.FileName, fileTwo.FileName}, nil)
 
 		wantHeaderLen = uint32(8 + (2 + len(fileOne.FileName) + 8) + (2 + len(fileTwo.FileName) + 8))
 	)
@@ -67,7 +68,7 @@ func TestWriteAndReadArchive(t *testing.T) {
 	var (
 		fileOne    = createTempFileForTest(t, "fileOne.txt", "AAAAAAAA")
 		fileTwo    = createTempFileForTest(t, "fileTwo.txt", "BBBBBBBB")
-		archive, _ = Create([]string{fileOne.FileName, fileTwo.FileName})
+		archive, _ = Create([]string{fileOne.FileName, fileTwo.FileName}, nil)
 		writer     = new(bytes.Buffer)
 	)
 
@@ -84,7 +85,7 @@ func TestReadFileByName(t *testing.T) {
 	var (
 		fileOne    = createTempFileForTest(t, "fileOne.txt", "AAAAAAAA")
 		fileTwo    = createTempFileForTest(t, "fileTwo.txt", "BBBBBBBB")
-		archive, _ = Create([]string{fileOne.FileName, fileTwo.FileName})
+		archive, _ = Create([]string{fileOne.FileName, fileTwo.FileName}, nil)
 		arBytes    = new(bytes.Buffer)
 	)
 
@@ -124,4 +125,65 @@ func createTempFileForTest(t *testing.T, fileName, content string) *ArchiveFile 
 	}
 
 	return NewFileFromCompressedBytes(filePath, compressedBytes)
+}
+
+func TestCreateArchiveReportsProgress(t *testing.T) {
+	var (
+		fileOne = createTempFileForTest(t, "fileOne.txt", "AAAAAAAA")
+		fileTwo = createTempFileForTest(t, "fileTwo.txt", "BBBBBBBB")
+		paths   = []string{fileOne.FileName, fileTwo.FileName}
+		got     []Progress
+	)
+
+	_, err := Create(paths, func(p Progress) { got = append(got, p) })
+	assert.Nil(t, err)
+
+	t.Run("reports every file once", func(t *testing.T) {
+		assert.Equal(t, len(paths), len(got))
+
+		reported := make([]string, 0, len(got))
+		for _, p := range got {
+			reported = append(reported, p.Path)
+		}
+		assert.ElementsMatch(t, paths, reported)
+	})
+
+	t.Run("counts up to the total", func(t *testing.T) {
+		for i, p := range got {
+			assert.Equal(t, i+1, p.Done)
+			assert.Equal(t, len(paths), p.Total)
+			assert.Nil(t, p.Err)
+			assert.NotZero(t, p.Compressed)
+		}
+	})
+}
+
+func TestCreateArchiveReportsFailures(t *testing.T) {
+	var (
+		fileOne = createTempFileForTest(t, "fileOne.txt", "AAAAAAAA")
+		missing = filepath.Join(t.TempDir(), "missing.txt")
+		got     []Progress
+	)
+
+	_, err := Create(
+		[]string{fileOne.FileName, missing},
+		func(p Progress) { got = append(got, p) },
+	)
+
+	t.Run("returns the error", func(t *testing.T) {
+		assert.ErrorIs(t, err, fs.ErrNotExist)
+	})
+
+	t.Run("still reports both files", func(t *testing.T) {
+		assert.Equal(t, 2, len(got))
+
+		var failed int
+		for _, p := range got {
+			if p.Err != nil {
+				failed++
+				assert.Equal(t, missing, p.Path)
+			}
+		}
+		assert.Equal(t, 1, failed)
+	})
 }

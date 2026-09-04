@@ -72,8 +72,10 @@ func ReadArchive(r io.Reader) (*Archive, error) {
 }
 
 // Create creates a new archive from the provided file paths.
-func Create(filePaths []string) (*Archive, error) {
-	files, err := readAndCompressFiles(filePaths)
+// If onProgress is non-nil, it's called once per file as it finishes being read
+// and compressed.
+func Create(filePaths []string, onProgress func(Progress)) (*Archive, error) {
+	files, err := readAndCompressFiles(filePaths, onProgress)
 	if err != nil {
 		return nil, err
 	}
@@ -89,29 +91,73 @@ func Create(filePaths []string) (*Archive, error) {
 	}, nil
 }
 
+// Progress reports a single file that has finished being read and compressed.
+// Err is non-nil if that file failed.
+type Progress struct {
+	Path       string
+	Err        error
+	Done       int // Files finished so far, including this one
+	Total      int
+	Compressed uint32 // Compressed size, 0 if the file failed
+}
+
 // readAndCompressFiles reads the files concurrently from the provided file paths.
 // Each file is xz-compressed and stored in an ArchiveFile struct.
-// The order of the files is preserved.
-func readAndCompressFiles(filePaths []string) ([]*ArchiveFile, error) {
+// The order of the files is preserved, and the work is bounded to GOMAXPROCS
+// files in flight at a time.
+//
+// If onProgress is non-nil, it's called once per file as it finishes, in
+// completion order. It runs on the caller's goroutine, so it doesn't need to be
+// safe for concurrent use.
+func readAndCompressFiles(
+	filePaths []string,
+	onProgress func(Progress),
+) ([]*ArchiveFile, error) {
 	var (
-		files = make([]*ArchiveFile, len(filePaths))
-		errs  = make([]error, len(filePaths))
-		sem   = make(chan struct{}, runtime.GOMAXPROCS(0))
-		wg    sync.WaitGroup
+		files  = make([]*ArchiveFile, len(filePaths))
+		errs   = make([]error, len(filePaths))
+		sem    = make(chan struct{}, runtime.GOMAXPROCS(0))
+		events = make(chan Progress)
+		wg     sync.WaitGroup
 	)
 
-	for i, path := range filePaths {
-		wg.Add(1)
-		sem <- struct{}{} // Blocks once N are in flight
+	// The files are dispatched from their own goroutine so that the caller is
+	// free to consume events while files are still being compressed. Dispatching
+	// them here would deadlock: the workers would block sending to events, never
+	// releasing their semaphore slot, and this loop would stall on a full sem.
+	go func() {
+		for i, path := range filePaths {
+			wg.Add(1)
+			sem <- struct{}{} // Blocks once N are in flight
 
-		go func(i int, path string) {
-			defer wg.Done()
-			defer func() { <-sem }()
+			go func(i int, path string) {
+				defer wg.Done()
+				defer func() { <-sem }()
 
-			files[i], errs[i] = NewFileFromPath(path)
-		}(i, path)
+				files[i], errs[i] = NewFileFromPath(path)
+
+				event := Progress{Path: path, Err: errs[i], Total: len(filePaths)}
+				if errs[i] == nil {
+					event.Compressed = files[i].CompressedSize()
+				}
+
+				events <- event
+			}(i, path)
+		}
+
+		wg.Wait()
+		close(events)
+	}()
+
+	var done int
+	for event := range events {
+		done++
+		event.Done = done
+
+		if onProgress != nil {
+			onProgress(event)
+		}
 	}
-	wg.Wait()
 
 	return files, errors.Join(errs...)
 }
