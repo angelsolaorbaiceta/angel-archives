@@ -11,10 +11,11 @@ import (
 
 func main() {
 	var (
-		createCmd          = flag.NewFlagSet("create", flag.ExitOnError)
-		createFileNameFlag = createCmd.String("f", "", "Output filename of the archive")
-		createEncryptFlag  = createCmd.Bool("encrypt", false, "Encrypt the archive with a password")
-		createHelpFlag     = createCmd.Bool("help", false, "Show help for create command")
+		createCmd                = flag.NewFlagSet("create", flag.ExitOnError)
+		createFileNameFlag       = createCmd.String("f", "", "Output filename of the archive")
+		createEncryptFlag        = createCmd.Bool("encrypt", false, "Encrypt the archive with a password")
+		createDeleteOriginalFlag = createCmd.Bool("delete", false, "Delete the original files")
+		createHelpFlag           = createCmd.Bool("help", false, "Show help for create command")
 
 		extractCmd          = flag.NewFlagSet("extract", flag.ExitOnError)
 		extractFileNameFlag = extractCmd.String("f", "", "Filename of the archive to extract")
@@ -54,7 +55,12 @@ func main() {
 		}
 		validateFileName(*createFileNameFlag)
 		fileNames := createCmd.Args()
-		createArchive(*createFileNameFlag, fileNames, *createEncryptFlag)
+		createArchive(
+			*createFileNameFlag,
+			fileNames,
+			*createEncryptFlag,
+			*createDeleteOriginalFlag,
+		)
 
 	case "extract":
 		extractCmd.Parse(os.Args[2:])
@@ -67,7 +73,11 @@ func main() {
 		if *extractNameFlag == "" {
 			cmd.ExtractArchive(*extractFileNameFlag, *extractDecryptFlag)
 		} else {
-			cmd.ExtractArchiveFile(*extractFileNameFlag, *extractNameFlag, *extractDecryptFlag)
+			cmd.ExtractArchiveFile(
+				*extractFileNameFlag,
+				*extractNameFlag,
+				*extractDecryptFlag,
+			)
 		}
 
 	case "list":
@@ -114,7 +124,7 @@ func validateFileName(name string) {
 	}
 }
 
-func createArchive(fileName string, fileNames []string, encrypt bool) {
+func createArchive(fileName string, fileNames []string, encrypt, deleteOriginal bool) {
 	if len(fileNames) == 0 {
 		fmt.Fprintf(os.Stderr, "You must specify at least one file to add to the archive.\n")
 		os.Exit(1)
@@ -122,8 +132,8 @@ func createArchive(fileName string, fileNames []string, encrypt bool) {
 
 	// Add appropriate extension based on encryption flag
 	finalFileName := addArchiveExtension(fileName, encrypt)
-	
-	cmd.CreateArchive(finalFileName, fileNames, encrypt)
+
+	cmd.CreateArchive(finalFileName, fileNames, encrypt, deleteOriginal)
 }
 
 func addArchiveExtension(fileName string, encrypt bool) string {
@@ -133,7 +143,7 @@ func addArchiveExtension(fileName string, encrypt bool) string {
 	} else if strings.HasSuffix(fileName, ".aar") {
 		fileName = strings.TrimSuffix(fileName, ".aar")
 	}
-	
+
 	// Add appropriate extension
 	if encrypt {
 		return fileName + ".aar.enc"
