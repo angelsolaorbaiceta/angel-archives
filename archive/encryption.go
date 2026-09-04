@@ -56,8 +56,8 @@ func (a *EncryptedArchive) Write(w io.Writer) error {
 
 // ReadEncryptedArchive reads an encrypted archive from the provided reader.
 func ReadEncryptedArchive(r io.Reader) (*EncryptedArchive, error) {
-	if err := mustReadEncryptedMagic(r); err != nil {
-		return nil, err
+	if magic := readMagic(r); magic != FileMagicEncArchive {
+		return nil, ErrWrongFileType
 	}
 
 	// Read the salt (16 bytes)

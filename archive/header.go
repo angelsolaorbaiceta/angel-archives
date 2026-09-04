@@ -12,7 +12,8 @@ var byteOrder = binary.LittleEndian
 // A Header represents the metadata of the archive.
 // It includes the header's length in bytes and a list of file entries.
 type Header struct {
-	// HeaderLength is the length of the header in bytes, including the magic and header length fields.
+	// HeaderLength is the length of the header in bytes, including the magic
+	// and header length fields.
 	HeaderLength uint32
 	Entries      []*HeaderFileEntry
 }
@@ -63,6 +64,7 @@ func (h *Header) Write(w io.Writer) error {
 
 // ReadHeader reads the header from the provided reader and returns a Header struct.
 // It doesn't close the reader.
+// It expects to read from an unencrypted archive, returns an error otherwise.
 func ReadHeader(r io.Reader) (*Header, error) {
 	var (
 		headerLength uint32
@@ -70,11 +72,10 @@ func ReadHeader(r io.Reader) (*Header, error) {
 		fileEntries  []*HeaderFileEntry
 	)
 
-	if err := mustReadMagic(r); err != nil {
-		return nil, err
-	} else {
-		readBytes += magicLen
+	if fileType := readMagic(r); fileType != FileMagicArchive {
+		return nil, ErrWrongFileType
 	}
+	readBytes += magicLen
 
 	// Read the header length (4 bytes)
 	if err := binary.Read(r, byteOrder, &headerLength); err != nil {
@@ -107,17 +108,18 @@ var ErrEntryNotFoundInHeader = fmt.Errorf("entry not found in header")
 // provided name is found. It returns the file entry or a errEntryNotFoundInHeader
 // error if the file is not found. Other errors can be returned if the reader fails.
 // The reader isn't closed.
+//
+// Expect to read from an unencrypted archive, returns error otherwise.
 func FindHeaderEntryByName(r io.Reader, fileName string) (*HeaderFileEntry, error) {
 	var (
 		headerLength uint32
 		readBytes    uint32 = 0
 	)
 
-	if err := mustReadMagic(r); err != nil {
-		return nil, err
-	} else {
-		readBytes += magicLen
+	if fileType := readMagic(r); fileType != FileMagicArchive {
+		return nil, ErrWrongFileType
 	}
+	readBytes += magicLen
 
 	// Read the header length (4 bytes)
 	if err := binary.Read(r, byteOrder, &headerLength); err != nil {
