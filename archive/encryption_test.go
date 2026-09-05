@@ -56,7 +56,7 @@ func makeTestArchive() *Archive {
 		Files: []*ArchiveFile{
 			{
 				FileName: "file1.txt",
-				CompressedBytes: []byte{
+				Data: []byte{
 					0x78, 0x9c, 0x4b, 0x4c,
 					0x4f, 0x49, 0x2d, 0x2e,
 					0x01, 0x00, 0x00, 0xff,
@@ -64,7 +64,7 @@ func makeTestArchive() *Archive {
 			},
 			{
 				FileName: "file2.txt",
-				CompressedBytes: []byte{
+				Data: []byte{
 					0x78, 0x9c, 0x4b, 0x4c,
 					0x4f, 0x49, 0x2d, 0x2e,
 					0x01, 0x00, 0x00, 0xff,

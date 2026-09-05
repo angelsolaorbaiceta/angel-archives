@@ -12,10 +12,11 @@ import (
 type HeaderFileEntry struct {
 	// Name is a unique identifier for the file.
 	Name string
-	// Offset is the byte offset from the beginning of the archive where the file's data begins.
-	// Uses 4 bytes to store the offset.
+	// Offset is the byte offset from the beginning of the archive where the
+	// file's data begins. Uses 4 bytes to store the offset.
 	Offset uint32
-	// Size is the size of the file's compressed data in bytes. Uses 4 bytes to store the size.
+	// Size is the size of the file's compressed data in bytes. Uses 4 bytes
+	// to store the size.
 	Size uint32
 }
 
@@ -35,7 +36,7 @@ func (f *HeaderFileEntry) String() string {
 	size := humanize.Bytes(uint64(f.Size))
 
 	return fmt.Sprintf(
-		"%s (Offset: %d bytes, Compressed size: %s [%d bytes])",
+		"%s (Offset: %d bytes, Size: %s [%d bytes])",
 		f.Name, f.Offset, size, f.Size,
 	)
 }
@@ -115,7 +116,7 @@ func ReadHeaderFile(r io.Reader) (*HeaderFileEntry, error) {
 }
 
 // ReadFrom reads the file data from the provided ReaderSeeker, using the file's
-// offset and size
+// offset and size.
 func (f *HeaderFileEntry) ReadFrom(r ReaderSeeker) (*ArchiveFile, error) {
 	fileData := make([]byte, f.Size)
 
@@ -127,5 +128,5 @@ func (f *HeaderFileEntry) ReadFrom(r ReaderSeeker) (*ArchiveFile, error) {
 		return nil, err
 	}
 
-	return NewFileFromCompressedBytes(f.Name, fileData), nil
+	return NewFileFromData(fileData, f.Name), nil
 }

@@ -6,69 +6,42 @@ import (
 )
 
 // ArchiveFile represents a single file in the archive.
-// It includes the file's name and its compressed bytes (using xz).
-// The decompressed bytes can be obtained using the DecompressedBytes method.
+// It includes the file's name and its raw bytes.
 type ArchiveFile struct {
-	FileName        string
-	CompressedBytes []byte
+	FileName string
+	Data     []byte
 }
 
-// Write writes the compressed bytes of the file into the provided writer.
+// Write writes the bytes of the file into the provided writer.
 func (f *ArchiveFile) Write(w io.Writer) error {
-	_, err := w.Write(f.CompressedBytes)
+	_, err := w.Write(f.Data)
 	return err
 }
 
-// WriteDecompressed writes the decompressed bytes of the file into the provided writer.
-func (f *ArchiveFile) WriteDecompressed(w io.Writer) error {
-	decompressedBytes, err := f.DecompressedBytes()
-	if err != nil {
-		return err
-	}
-
-	_, err = w.Write(decompressedBytes)
-	return err
+// SizeInBytes returns the number of bytes in the file.
+func (f *ArchiveFile) SizeInBytes() int {
+	return len(f.Data)
 }
 
-// CompressedSize returns the size of the compressed file in bytes.
-func (f *ArchiveFile) CompressedSize() uint32 {
-	return uint32(len(f.CompressedBytes))
-}
-
-// DecompressedBytes returns the uncompressed bytes of the file.
-func (f *ArchiveFile) DecompressedBytes() ([]byte, error) {
-	return Decompress(f.CompressedBytes)
-}
-
-// NewFileFromCompressedBytes creates a new ArchiveFile from a file name and its bytes.
-func NewFileFromCompressedBytes(fileName string, data []byte) *ArchiveFile {
-	return &ArchiveFile{
-		FileName:        fileName,
-		CompressedBytes: data,
-	}
-}
-
-// NewFileFromReader creates a new ArchiveFile from a reader.
-// It reads its bytes, compresses them using xz, and returns the ArchiveFile.
+// NewFileFromReader creates a new ArchiveFile from the bytes read from the reader.
 func NewFileFromReader(reader io.Reader, fileName string) (*ArchiveFile, error) {
 	data, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
 	}
 
-	compressedData, err := Compress(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ArchiveFile{
-		FileName:        fileName,
-		CompressedBytes: compressedData,
-	}, nil
+	return NewFileFromData(data, fileName), nil
 }
 
-// NewFileFromPath creates a new ArchiveFile from a file path, by reading its
-// bytes and xz-compressing them.
+// NewFileFromData returns a new file from the raw bytes and file name.
+func NewFileFromData(data []byte, fileName string) *ArchiveFile {
+	return &ArchiveFile{
+		FileName: fileName,
+		Data:     data,
+	}
+}
+
+// NewFileFromPath creates a new ArchiveFile from tye bytes in the file at the file path.
 // Returns an error if the file path can't be opened or the file can't be read from.
 func NewFileFromPath(path string) (*ArchiveFile, error) {
 	reader, err := os.Open(path)
@@ -91,8 +64,8 @@ func ReadFiles(r io.Reader, header *Header) ([]*ArchiveFile, error) {
 		}
 
 		files[i] = &ArchiveFile{
-			FileName:        entry.Name,
-			CompressedBytes: fileData,
+			FileName: entry.Name,
+			Data:     fileData,
 		}
 	}
 

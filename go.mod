@@ -6,7 +6,6 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.9.0
-	github.com/ulikunitz/xz v0.5.12
 	golang.org/x/crypto v0.26.0
 	golang.org/x/term v0.23.0
 )

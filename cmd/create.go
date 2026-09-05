@@ -70,26 +70,7 @@ func createArchive(
 ) {
 	fmt.Fprintf(os.Stderr, "Creating archive %s with %d files...\n", outFileName, len(inFileNames))
 
-	// os.Stderr is unbuffered, so each line reaches the terminal as its file
-	// finishes, rather than being held back until the whole archive is done.
-	onProgress := func(p archive.Progress) {
-		if p.Err != nil {
-			fmt.Fprintf(
-				os.Stderr,
-				"	[%d/%d] %s: FAILED: %v\n",
-				p.Done, p.Total, p.Path, p.Err,
-			)
-			return
-		}
-
-		fmt.Fprintf(
-			os.Stderr,
-			"	[%d/%d] %s (compressed size = %s)\n",
-			p.Done, p.Total, p.Path, humanize.Bytes(uint64(p.Compressed)),
-		)
-	}
-
-	archive, err := archive.Create(inFileNames, onProgress)
+	archive, err := archive.Create(inFileNames)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating archive: %v\n", err)
 		os.Exit(1)

@@ -113,7 +113,7 @@ func TestReadFrom(t *testing.T) {
 			Offset: 27,
 			Size:   4,
 		}
-		want = NewFileFromCompressedBytes("test.txt", []byte("AAAA"))
+		want = NewFileFromData([]byte("AAAA"), "test.txt")
 	)
 
 	file, err := entry.ReadFrom(reader)
