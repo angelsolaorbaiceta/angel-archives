@@ -1,11 +1,11 @@
 # Angel Archives
 
-An archiving tool that xz-compresses and bundles files together into an archive.
+An archiving tool that bundles files together into an archive.
 Archives can be encrypted and decrypted for maximum privacy.
 
 ## Installation
 
-Make sure you’ve correctly installed Go v1.23 or greater and that the Go binaries are in your PATH (you want to append `$GOPATH/bin` to your `PATH` to access installed Go binaries).
+Make sure you’ve correctly installed Go v1.27.1 or greater and that the Go binaries are in your PATH (you want to append `$GOPATH/bin` to your `PATH` to access installed Go binaries).
 Then:
 
 ```bash
@@ -44,57 +44,7 @@ $ which aar
 
 ## Usage
 
-Creating an archive:
-
-```bash
-$ aar create -f archive.aarch file1.txt file2.txt file3.txt
-```
-
-Extracting all files an archive:
-
-```bash
-$ aar extract -f archive.aarch
-```
-
-Extracting a single file by name from an archive:
-
-```bash
-$ aar extract -f archive.aarch -n file2.txt
-```
-
-Listing the contents of an archive:
-
-```bash
-$ aar list -f archive.aarch
-```
-
-Encrypting an archive:
-
-```bash
-$ aar encrypt -f archive.aarch
-Password: <password>
-Confirm password: <password>
-```
-
-Where `<password>` is the password you want to use to encrypt the archive, with a minimum length of 8 characters.
-It removes the original _.aarch_ file and creates a new one with the encrypted data, with extension _.aarch.enc_.
-
-> [!NOTE]
-> The encryption is done using the AES-256-GCM algorithm, and it only works for angel archives.
-
-Decrypting an archive:
-
-```bash
-$ aar decrypt -f archive.aarch.enc
-Password: <password>
-Confirm password: <password>
-```
-
-Where `<password>` is the password you used to encrypt the archive.
-It removes the encrypted _.aarch.enc_ file and creates a new one with the decrypted data, with extension _.aarch_.
-
-> [!NOTE]
-> The decryption is done using the AES-256-GCM algorithm, and it only works for encrypted angel archives.
+Run the tool with the `-h` flag to learn how to use it.
 
 ## File Format
 
@@ -102,7 +52,7 @@ It removes the encrypted _.aarch.enc_ file and creates a new one with the decryp
 
 The archive file starts with a header that contains the following:
 
-- **Magic**: A 4-byte sequence that identifies the file as an Angel Archive. The sequence is "AAR?" (0x41 0x41 0x52 0x3F)."
+- **Magic**: A 4-byte sequence that identifies the file as an Angel Archive. The sequence is "AAR?" (0x41 0x41 0x52 0x3F) for non-encrypted archives and "AARX" (0x41, 0x41, 0x52, 0x58) for encrypted archives.
 - **Header length**: A 4-byte integer that specifies the length of the header in bytes.
 - **Files**: A list of files that are included in the archive. Each file entry contains the following:
   - **Name length**: A 2-byte integer that specifies the length of the file name in bytes.
@@ -125,4 +75,3 @@ Example:
 ### Archive Files
 
 The files are stored sequentially after the header.
-Their raw bytes are xz-compressed before being saved to disk.
