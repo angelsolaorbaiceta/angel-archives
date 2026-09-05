@@ -40,8 +40,8 @@ func init() {
 	rootCmd.AddCommand(extractCmd)
 }
 
-func extractArchive(fileName string, decrypt bool) {
-	reader, err := os.OpenFile(fileName, os.O_RDONLY, 0)
+func extractArchive(archiveFilePath string, decrypt bool) {
+	reader, err := os.OpenFile(archiveFilePath, os.O_RDONLY, 0)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening archive file: %v\n", err)
 		os.Exit(1)
@@ -53,7 +53,7 @@ func extractArchive(fileName string, decrypt bool) {
 		encryptedArch, err := archive.ReadEncryptedArchive(reader)
 		if err != nil {
 			if err == archive.ErrWrongFileType {
-				fmt.Fprintf(os.Stderr, "The archive wasn't encrypted or isn't an .aar archive\n")
+				fmt.Fprintf(os.Stderr, "The archive isn't encrypted or isn't an .aar archive\n")
 			} else {
 				fmt.Fprintf(os.Stderr, "Error reading encrypted archive: %v\n", err)
 			}
@@ -70,7 +70,7 @@ func extractArchive(fileName string, decrypt bool) {
 		arch, err = archive.ReadArchive(reader)
 		if err != nil {
 			if err == archive.ErrWrongFileType {
-				fmt.Fprintf(os.Stderr, "An only unarchive .aar arvhives\n")
+				fmt.Fprintf(os.Stderr, "The archive is encrypted or not a valid .aar archive\n")
 			} else {
 				fmt.Fprintf(os.Stderr, "Error reading archive: %v\n", err)
 			}
@@ -87,7 +87,7 @@ func extractArchive(fileName string, decrypt bool) {
 		}
 		defer outFile.Close()
 
-		err = file.WriteDecompressed(outFile)
+		err = file.Write(outFile)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error writing file: %v\n", err)
 			os.Exit(1)
@@ -95,8 +95,8 @@ func extractArchive(fileName string, decrypt bool) {
 	}
 }
 
-func extractArchiveFile(fileName, fileToExtract string, decrypt bool) {
-	reader, err := os.OpenFile(fileName, os.O_RDONLY, 0)
+func extractArchiveFile(archiveFilePath, fileToExtract string, decrypt bool) {
+	reader, err := os.OpenFile(archiveFilePath, os.O_RDONLY, 0)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening archive file: %v\n", err)
 		os.Exit(1)
@@ -107,7 +107,11 @@ func extractArchiveFile(fileName, fileToExtract string, decrypt bool) {
 	if decrypt {
 		encryptedArch, err := archive.ReadEncryptedArchive(reader)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading encrypted archive: %v\n", err)
+			if err == archive.ErrWrongFileType {
+				fmt.Fprintf(os.Stderr, "The archive isn't encrypted or isn't an .aar archive\n")
+			} else {
+				fmt.Fprintf(os.Stderr, "Error reading encrypted archive: %v\n", err)
+			}
 			os.Exit(1)
 		}
 
@@ -152,7 +156,7 @@ func extractArchiveFile(fileName, fileToExtract string, decrypt bool) {
 	}
 	defer outFile.Close()
 
-	err = archFile.WriteDecompressed(outFile)
+	err = archFile.Write(outFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error writing file: %v\n", err)
 		os.Exit(1)

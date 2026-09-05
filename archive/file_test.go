@@ -18,8 +18,7 @@ func TestNewFileFromReader(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, archiveFile.FileName, fileName)
-	assert.NotEmpty(t, archiveFile.CompressedBytes)
+	assert.NotEmpty(t, archiveFile.Data)
 
-	uncompressed, _ := archiveFile.DecompressedBytes()
-	assert.Equal(t, data, uncompressed)
+	assert.Equal(t, data, archiveFile.Data)
 }
